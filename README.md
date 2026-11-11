@@ -82,6 +82,17 @@ node server.js          # 默认 http://127.0.0.1:5173
 
 见 [`deploy/README.md`](deploy/README.md)：systemd 单元 + Nginx 反代，Node 只监听回环地址，公网流量一律经 Nginx。
 
+## 受限网络下的推送
+
+如果服务器能访问 `api.github.com` 但无法完成 `github.com` 的 git 传输（表现为 `GnuTLS recv error (-110)`），
+可以改用 Git Data API 推送，无需 git 协议：
+
+```bash
+GH_TOKEN=<personal access token> python3 deploy/git-push-api.py 1rgg/personal-toolbox .
+```
+
+脚本会按内容缓存 blob，重复推只上传变化的文件；空仓库首次可用，因为它会先落一个种子提交。
+
 ## 数据来源
 
 Liquipedia、5EPlay、腾讯财经、东方财富、12306 数据服务、快递查询、tmini 金价接口。全部为公开接口，站点仅做展示与聚合，仅供个人学习研究，不构成任何投资、出行或交易建议；接口可用性由第三方决定。
