@@ -1,0 +1,2140 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>火车出行方案 · 个人工具箱</title>
+    <link rel="stylesheet" href="/assets/site.css">
+    <style>
+
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, "PingFang SC", "Microsoft YaHei", sans-serif;
+            background: var(--paper);
+            color: var(--ink);
+            min-height: 100vh;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px 16px;
+        }
+
+        /* 顶部标题 */
+        .header {
+            text-align: center;
+            padding: 32px 0 24px;
+        }
+
+        .header h1 {
+            font-size: 28px;
+            font-weight: 700;
+            color: var(--ink);
+            letter-spacing: 2px;
+        }
+
+        .header p {
+            font-size: 14px;
+            color: var(--ink-3);
+            margin-top: 8px;
+        }
+
+        /* 查询表单 */
+        .search-box {
+            background: var(--surface);
+            border-radius: 12px;
+            padding: 24px;
+            box-shadow: 0 2px 12px rgba(0, 0, 0, 0.06);
+            margin-bottom: 20px;
+        }
+
+        .form-row {
+            display: flex;
+            gap: 16px;
+            align-items: flex-end;
+            flex-wrap: wrap;
+        }
+
+        .form-group {
+            flex: 1;
+            min-width: 180px;
+            position: relative;
+        }
+
+        .form-group label {
+            display: block;
+            font-size: 13px;
+            color: var(--ink-2);
+            margin-bottom: 6px;
+            font-weight: 500;
+        }
+
+        .form-group input {
+            width: 100%;
+            height: 42px;
+            border: 1px solid var(--line-strong);
+            border-radius: 8px;
+            padding: 0 14px;
+            font-size: 15px;
+            color: var(--ink);
+            transition: border-color 0.2s;
+            outline: none;
+        }
+
+        .form-group input:focus {
+            border-color: var(--accent);
+            box-shadow: 0 0 0 2px rgba(26, 115, 232, 0.1);
+        }
+
+        .form-group input.error {
+            border-color: var(--red);
+        }
+
+        .form-group .error-msg {
+            font-size: 12px;
+            color: var(--red);
+            margin-top: 4px;
+            min-height: 18px;
+        }
+
+        /* 站点对换按钮 */
+        .swap-btn {
+            width: 42px;
+            height: 42px;
+            border: 1px solid var(--line-strong);
+            border-radius: 8px;
+            background: var(--surface);
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: all 0.2s;
+            flex-shrink: 0;
+            margin-bottom: 22px;
+        }
+
+        .swap-btn:hover {
+            border-color: var(--accent);
+            background: var(--accent-soft);
+        }
+
+        .swap-btn svg {
+            width: 20px;
+            height: 20px;
+            fill: var(--ink-2);
+            transition: fill 0.2s;
+        }
+
+        .swap-btn:hover svg {
+            fill: var(--accent);
+        }
+
+        .btn-search {
+            height: 42px;
+            padding: 0 32px;
+            background: var(--accent);
+            color: #fff;
+            border: none;
+            border-radius: 8px;
+            font-size: 15px;
+            font-weight: 500;
+            cursor: pointer;
+            transition: background 0.2s;
+            white-space: nowrap;
+            margin-bottom: 22px;
+        }
+
+        .btn-search:hover {
+            background: #1557b0;
+        }
+
+        .btn-search:disabled {
+            background: #a0c4f1;
+            cursor: not-allowed;
+        }
+
+        /* 查询历史 */
+        .history-section {
+            margin-bottom: 20px;
+        }
+
+        .history-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-bottom: 10px;
+        }
+
+        .history-header h3 {
+            font-size: 14px;
+            color: var(--ink-2);
+            font-weight: 500;
+        }
+
+        .btn-clear-history {
+            font-size: 12px;
+            color: var(--ink-3);
+            background: none;
+            border: none;
+            cursor: pointer;
+            padding: 4px 8px;
+            border-radius: 4px;
+            transition: all 0.2s;
+        }
+
+        .btn-clear-history:hover {
+            color: var(--red);
+            background: var(--red-soft);
+        }
+
+        .history-list {
+            display: flex;
+            gap: 10px;
+            flex-wrap: wrap;
+        }
+
+        .history-tag {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            padding: 8px 14px;
+            background: var(--surface);
+            border: 1px solid var(--line);
+            border-radius: 20px;
+            font-size: 13px;
+            color: var(--ink-2);
+            cursor: pointer;
+            transition: all 0.2s;
+            box-shadow: 0 1px 4px rgba(0, 0, 0, 0.04);
+        }
+
+        .history-tag:hover {
+            border-color: var(--accent);
+            color: var(--accent);
+            background: var(--accent-soft);
+        }
+
+        .history-tag .arrow {
+            color: var(--line-strong);
+            font-size: 12px;
+        }
+
+        .history-tag .remove {
+            font-size: 14px;
+            color: var(--line-strong);
+            cursor: pointer;
+            margin-left: 2px;
+            line-height: 1;
+        }
+
+        .history-tag .remove:hover {
+            color: var(--red);
+        }
+
+        /* 排序栏 */
+        .sort-bar {
+            display: none;
+            align-items: center;
+            gap: 10px;
+            margin-bottom: 16px;
+            flex-wrap: wrap;
+        }
+
+        .sort-bar.visible {
+            display: flex;
+        }
+
+        .sort-bar .sort-label {
+            font-size: 13px;
+            color: var(--ink-3);
+            font-weight: 500;
+        }
+
+        .sort-btn {
+            padding: 6px 16px;
+            border: 1px solid var(--line-strong);
+            border-radius: 16px;
+            background: var(--surface);
+            font-size: 13px;
+            color: var(--ink-2);
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .sort-btn:hover {
+            border-color: var(--accent);
+            color: var(--accent);
+        }
+
+        .sort-btn.active {
+            background: var(--accent);
+            border-color: var(--accent);
+            color: #fff;
+        }
+
+        .sort-btn.active.asc::after {
+            content: " \2191";
+        }
+
+        .sort-btn.active.desc::after {
+            content: " \2193";
+        }
+
+        /* 结果区域 */
+        .result-area {
+            min-height: 200px;
+        }
+
+        .placeholder {
+            text-align: center;
+            padding: 80px 20px;
+            color: var(--line-strong);
+        }
+
+        .placeholder .icon {
+            font-size: 48px;
+            margin-bottom: 16px;
+        }
+
+        .placeholder p {
+            font-size: 15px;
+        }
+
+        .loading {
+            text-align: center;
+            padding: 60px 20px;
+        }
+
+        .loading .spinner {
+            width: 36px;
+            height: 36px;
+            border: 3px solid var(--line);
+            border-top-color: var(--accent);
+            border-radius: 50%;
+            animation: spin 0.8s linear infinite;
+            margin: 0 auto 16px;
+        }
+
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+
+        .loading p {
+            color: var(--ink-3);
+            font-size: 14px;
+        }
+
+        .error-msg-global {
+            text-align: center;
+            padding: 60px 20px;
+            color: var(--red);
+            font-size: 15px;
+        }
+
+        .no-result {
+            text-align: center;
+            padding: 60px 20px;
+            color: var(--line-strong);
+            font-size: 15px;
+        }
+
+        /* 方案卡片 */
+        .card-list {
+            display: flex;
+            flex-direction: column;
+            gap: 16px;
+        }
+
+        .card {
+            background: var(--surface);
+            border-radius: 10px;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.05);
+            overflow: hidden;
+            transition: box-shadow 0.2s;
+            cursor: pointer;
+        }
+
+        .card:hover {
+            box-shadow: 0 4px 16px rgba(0, 0, 0, 0.1);
+        }
+
+        .card-header {
+            padding: 20px 24px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 16px;
+            flex-wrap: wrap;
+        }
+
+        .card-route {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            flex: 1;
+            min-width: 260px;
+        }
+
+        .card-station {
+            text-align: center;
+        }
+
+        .card-station .time {
+            font-size: 24px;
+            font-weight: 700;
+            color: var(--ink);
+        }
+
+        .card-station .name {
+            font-size: 13px;
+            color: var(--ink-3);
+            margin-top: 2px;
+        }
+
+        .card-arrow {
+            flex: 1;
+            min-width: 80px;
+            text-align: center;
+            position: relative;
+        }
+
+        .card-arrow .duration {
+            font-size: 14px;
+            color: var(--accent);
+            font-weight: 600;
+        }
+
+        .card-arrow .line {
+            height: 1px;
+            background: #ddd;
+            margin: 6px 0;
+        }
+
+        .card-arrow .train-codes {
+            font-size: 12px;
+            color: var(--ink-3);
+        }
+
+        .card-meta {
+            display: flex;
+            gap: 10px;
+            align-items: center;
+            flex-wrap: wrap;
+        }
+
+        .card-meta .tag {
+            padding: 4px 10px;
+            border-radius: 4px;
+            font-size: 12px;
+            font-weight: 500;
+        }
+
+        .tag-direct {
+            background: #e0f2f1;
+            color: #00695c;
+        }
+
+        .tag-transfer {
+            background: #e3f2fd;
+            color: #1565c0;
+        }
+
+        .tag-same-station {
+            background: var(--teal-soft);
+            color: var(--teal);
+        }
+
+        .tag-diff-station {
+            background: var(--gold-soft);
+            color: #e65100;
+        }
+
+        .tag-wait {
+            background: #f3e5f5;
+            color: #7b1fa2;
+        }
+
+        .tag-ticket {
+            background: var(--surface-2);
+            color: var(--ink-2);
+        }
+
+        .tag-ticket.has-ticket {
+            background: var(--teal-soft);
+            color: var(--teal);
+        }
+
+        .tag-ticket.no-ticket {
+            background: var(--red-soft);
+            color: var(--red);
+        }
+
+        .tag-price {
+            background: var(--gold-soft);
+            color: var(--gold);
+            font-weight: 600;
+        }
+
+        .expand-icon {
+            font-size: 18px;
+            color: var(--line-strong);
+            transition: transform 0.3s;
+            flex-shrink: 0;
+        }
+
+        .card.expanded .expand-icon {
+            transform: rotate(180deg);
+        }
+
+        /* 卡片详情 */
+        .card-detail {
+            display: none;
+            border-top: 1px solid var(--line);
+            padding: 20px 24px;
+            background: #fafbfc;
+        }
+
+        .card.expanded .card-detail {
+            display: block;
+        }
+
+        .detail-segment {
+            margin-bottom: 20px;
+        }
+
+        .detail-segment:last-child {
+            margin-bottom: 0;
+        }
+
+        .segment-header {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            margin-bottom: 12px;
+        }
+
+        .segment-badge {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            width: 24px;
+            height: 24px;
+            border-radius: 50%;
+            background: var(--accent);
+            color: #fff;
+            font-size: 12px;
+            font-weight: 600;
+        }
+
+        .segment-title {
+            font-size: 15px;
+            font-weight: 600;
+            color: var(--ink);
+        }
+
+        .segment-info {
+            display: flex;
+            align-items: center;
+            gap: 20px;
+            padding: 14px 18px;
+            background: var(--surface);
+            border-radius: 8px;
+            border: 1px solid #eee;
+            flex-wrap: wrap;
+        }
+
+        .segment-info .seg-station {
+            text-align: center;
+            min-width: 70px;
+        }
+
+        .segment-info .seg-station .seg-time {
+            font-size: 18px;
+            font-weight: 700;
+            color: var(--ink);
+        }
+
+        .segment-info .seg-station .seg-name {
+            font-size: 12px;
+            color: var(--ink-3);
+            margin-top: 2px;
+        }
+
+        .segment-info .seg-arrow {
+            flex: 1;
+            min-width: 60px;
+            text-align: center;
+        }
+
+        .segment-info .seg-arrow .seg-duration {
+            font-size: 13px;
+            color: var(--ink-2);
+        }
+
+        .segment-info .seg-arrow .seg-line {
+            height: 1px;
+            background: #e0e0e0;
+            margin: 4px 0;
+        }
+
+        .segment-info .seg-arrow .seg-train {
+            font-size: 13px;
+            color: var(--accent);
+            font-weight: 600;
+        }
+
+        /* 余票/票价表格 */
+        .ticket-table {
+            margin-top: 12px;
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 13px;
+        }
+
+        .ticket-table th {
+            background: #f5f6f8;
+            color: var(--ink-2);
+            font-weight: 500;
+            padding: 8px 10px;
+            text-align: center;
+            border-bottom: 1px solid #eee;
+        }
+
+        .ticket-table td {
+            padding: 8px 10px;
+            text-align: center;
+            border-bottom: 1px solid var(--surface-2);
+            color: var(--ink-2);
+        }
+
+        .ticket-table .ticket-has {
+            color: var(--teal);
+            font-weight: 600;
+        }
+
+        .ticket-table .ticket-no {
+            color: var(--red);
+        }
+
+        .ticket-table .ticket-none {
+            color: var(--line-strong);
+        }
+
+        .segment-extra {
+            display: flex;
+            gap: 16px;
+            margin-top: 10px;
+            flex-wrap: wrap;
+        }
+
+        .segment-extra .extra-item {
+            font-size: 12px;
+            color: var(--ink-3);
+        }
+
+        .segment-extra .extra-item .check-icon {
+            color: var(--teal);
+        }
+
+        /* 票价查询按钮 */
+        .btn-query-price {
+            display: inline-block;
+            padding: 6px 16px;
+            margin-top: 10px;
+            background: var(--surface);
+            border: 1px solid var(--accent);
+            border-radius: 6px;
+            color: var(--accent);
+            font-size: 13px;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .btn-query-price:hover {
+            background: var(--accent);
+            color: #fff;
+        }
+
+        .btn-query-price:disabled {
+            border-color: var(--line-strong);
+            color: var(--line-strong);
+            cursor: not-allowed;
+            background: var(--surface-2);
+        }
+
+        .price-result {
+            margin-top: 10px;
+            font-size: 13px;
+            color: var(--ink-2);
+        }
+
+        .price-result .price-row {
+            display: flex;
+            gap: 12px;
+            flex-wrap: wrap;
+            padding: 8px 12px;
+            background: var(--surface);
+            border-radius: 6px;
+            border: 1px solid var(--line);
+        }
+
+        .price-result .price-item {
+            color: var(--gold);
+            font-weight: 500;
+        }
+
+        .price-result .price-item .price-label {
+            color: var(--ink-3);
+            font-weight: 400;
+        }
+
+        /* 分页 */
+        .pagination {
+            display: none;
+            justify-content: center;
+            align-items: center;
+            gap: 12px;
+            margin-top: 24px;
+            padding: 16px 0;
+        }
+
+        .pagination.visible {
+            display: flex;
+        }
+
+        .page-btn {
+            padding: 8px 20px;
+            border: 1px solid var(--line-strong);
+            border-radius: 6px;
+            background: var(--surface);
+            font-size: 14px;
+            color: var(--ink-2);
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .page-btn:hover:not(:disabled) {
+            border-color: var(--accent);
+            color: var(--accent);
+        }
+
+        .page-btn:disabled {
+            opacity: 0.4;
+            cursor: not-allowed;
+        }
+
+        .page-info {
+            font-size: 14px;
+            color: var(--ink-3);
+        }
+
+        .page-input {
+            width: 50px;
+            height: 32px;
+            border: 1px solid var(--line-strong);
+            border-radius: 6px;
+            text-align: center;
+            font-size: 14px;
+            color: var(--ink);
+            outline: none;
+        }
+
+        .page-input:focus {
+            border-color: var(--accent);
+        }
+
+        .page-go {
+            padding: 6px 14px;
+            border: 1px solid var(--line-strong);
+            border-radius: 6px;
+            background: var(--surface);
+            font-size: 13px;
+            color: var(--ink-2);
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .page-go:hover {
+            border-color: var(--accent);
+            color: var(--accent);
+        }
+
+        /* Toast提示 */
+        .toast {
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            background: rgba(0, 0, 0, 0.75);
+            color: #fff;
+            padding: 14px 28px;
+            border-radius: 8px;
+            font-size: 14px;
+            z-index: 9999;
+            opacity: 0;
+            transition: opacity 0.3s;
+            pointer-events: none;
+        }
+
+        .toast.show {
+            opacity: 1;
+        }
+
+        /* 分区标题 */
+        .section-title {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            margin-bottom: 12px;
+            font-size: 15px;
+            font-weight: 600;
+            color: var(--ink-2);
+        }
+
+        .section-title .count {
+            font-size: 12px;
+            color: var(--ink-3);
+            font-weight: 400;
+        }
+
+        .section-divider {
+            height: 1px;
+            background: var(--line);
+            margin: 20px 0;
+        }
+
+        /* 响应式 */
+        @media (max-width: 768px) {
+            .header h1 {
+                font-size: 22px;
+            }
+
+            .search-box {
+                padding: 16px;
+            }
+
+            .form-row {
+                flex-direction: column;
+                gap: 12px;
+            }
+
+            .form-group {
+                min-width: 100%;
+            }
+
+            .swap-btn {
+                margin-bottom: 0;
+                align-self: center;
+                transform: rotate(90deg);
+            }
+
+            .btn-search {
+                width: 100%;
+                margin-bottom: 0;
+            }
+
+            .card-header {
+                padding: 16px;
+                flex-direction: column;
+                align-items: flex-start;
+            }
+
+            .card-route {
+                width: 100%;
+            }
+
+            .card-meta {
+                width: 100%;
+            }
+
+            .card-station .time {
+                font-size: 20px;
+            }
+
+            .card-detail {
+                padding: 16px;
+            }
+
+            .segment-info {
+                flex-direction: column;
+                align-items: stretch;
+                gap: 8px;
+            }
+
+            .segment-info .seg-station {
+                display: flex;
+                align-items: center;
+                gap: 8px;
+                min-width: auto;
+            }
+
+            .segment-info .seg-station .seg-time {
+                font-size: 16px;
+            }
+
+            .segment-info .seg-arrow {
+                min-width: auto;
+                display: flex;
+                align-items: center;
+                gap: 8px;
+            }
+
+            .segment-info .seg-arrow .seg-line {
+                flex: 1;
+                margin: 0;
+            }
+
+            .sort-bar {
+                justify-content: flex-start;
+            }
+
+            .pagination {
+                flex-wrap: wrap;
+            }
+        }
+        /* ===== 全站统一覆盖 ===== */
+        body {
+            font-family: var(--font);
+            color: var(--ink);
+            background: var(--paper);
+            -webkit-font-smoothing: antialiased;
+        }
+        .container { max-width: 1160px; padding: 0 0 8px; }
+        .search-box, .card, .history-section, .sort-bar, .pagination {
+            border: 1px solid var(--line);
+            box-shadow: var(--shadow-2);
+        }
+        .search-box { border-radius: var(--r-lg); padding: 20px 22px; }
+        .card { border-radius: var(--r-lg); }
+        .card:hover { box-shadow: var(--shadow-3); border-color: var(--line-strong); }
+        .form-group input, .page-input {
+            border-radius: var(--r-sm);
+            font-family: inherit;
+            background: var(--surface);
+            color: var(--ink);
+        }
+        .form-group input:focus, .page-input:focus {
+            border-color: var(--accent);
+            box-shadow: 0 0 0 3px var(--accent-soft);
+        }
+        .swap-btn, .page-btn, .btn-query-price, .sort-btn, .btn-clear-history {
+            border-radius: var(--r-sm);
+            font-family: inherit;
+        }
+        .btn-search, .page-go {
+            border-radius: var(--r-sm);
+            background: var(--accent);
+            color: #fff;
+            font-weight: 600;
+            letter-spacing: .02em;
+        }
+        .btn-search:hover:not(:disabled), .page-go:hover { background: var(--accent-ink); }
+        .sort-btn.active { background: var(--accent); color: #fff; border-color: var(--accent); }
+        .history-tag, .tag, .segment-badge { border-radius: 999px; }
+        .ticket-table th, .ticket-table td { border-color: var(--line); }
+        .toast { border-radius: var(--r-sm); }
+        .placeholder .icon { color: var(--line-strong); line-height: 0; }
+        .placeholder p { color: var(--ink-3); }
+        /* 暗色下的硬编码半透明阴影不刺眼，保留 */
+</style>
+</head>
+<body>
+<script src="/assets/site.js" data-app="railway"></script>
+<section class="page-head">
+  <div class="shell">
+    <nav class="crumbs" aria-label="面包屑"><a href="/">首页</a><span>/</span>出行方案</nav>
+    <p class="kicker"><span class="tick"></span>Railway</p>
+    <h1>火车出行方案</h1>
+    <p class="lede">输入出发站、到达站与日期，同时给出直达车次与换乘方案，含余票、票价与总时长，结果可排序、分页。</p>
+    <div class="meta-row">
+      <span class="meta-pill"><i></i>直达 + 中转换乘</span>
+      <span class="meta-pill"><i></i>实时余票与票价</span>
+      <span class="meta-pill"><i></i>历史查询本地保存</span>
+    </div>
+  </div>
+</section>
+
+<main class="app-main">
+<div class="container">
+<!-- 查询表单 -->
+        <div class="search-box">
+            <div class="form-row">
+                <div class="form-group">
+                    <label for="startStation">出发站</label>
+                    <input type="text" id="startStation" placeholder="请输入出发城市或车站" autocomplete="off">
+                    <div class="error-msg" id="startError"></div>
+                </div>
+                <button class="swap-btn" id="btnSwap" title="交换出发站和到达站">
+                    <svg viewBox="0 0 24 24"><path d="M16 17.01V10h-2v7.01h-3L15 21l4-3.99h-3zM9 3L5 6.99h3V14h2V6.99h3L9 3z"/></svg>
+                </button>
+                <div class="form-group">
+                    <label for="endStation">到达站</label>
+                    <input type="text" id="endStation" placeholder="请输入到达城市或车站" autocomplete="off">
+                    <div class="error-msg" id="endError"></div>
+                </div>
+                <div class="form-group">
+                    <label for="departDate">出发日期</label>
+                    <input type="date" id="departDate">
+                    <div class="error-msg" id="dateError"></div>
+                </div>
+                <button class="btn-search" id="btnSearch">查询</button>
+            </div>
+        </div>
+
+        <!-- 查询历史 -->
+        <div class="history-section" id="historySection" style="display:none;">
+            <div class="history-header">
+                <h3>查询历史</h3>
+                <button class="btn-clear-history" id="btnClearHistory">清空历史</button>
+            </div>
+            <div class="history-list" id="historyList"></div>
+        </div>
+
+        <!-- 排序栏 -->
+        <div class="sort-bar" id="sortBar">
+            <span class="sort-label">排序：</span>
+            <button class="sort-btn active asc" data-sort="duration">总时长</button>
+            <button class="sort-btn" data-sort="departTime">出发时间</button>
+            <button class="sort-btn" data-sort="transfers">换乘次数</button>
+            <button class="sort-btn" data-sort="price">票价</button>
+        </div>
+
+        <!-- 结果区域 -->
+        <div class="result-area" id="resultArea">
+            <div class="placeholder">
+                <div class="icon"><svg viewBox="0 0 64 64" width="72" height="72" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="14" y="8" width="36" height="36" rx="10"/><path d="M14 30h36M24 8v22M40 8v22M22 52l-6 6M42 52l6 6M20 44h4M40 44h4"/></svg></div>
+                <p>输入出发站和到达站，开始查询车次方案</p>
+            </div>
+        </div>
+
+        <!-- 分页 -->
+        <div class="pagination" id="pagination">
+            <button class="page-btn" id="btnPrev" disabled>上一页</button>
+            <span class="page-info" id="pageInfo">第 1 页</span>
+            <button class="page-btn" id="btnNext">下一页</button>
+            <span class="page-info">跳至</span>
+            <input type="number" class="page-input" id="pageInput" min="1" value="1">
+            <button class="page-go" id="btnPageGo">GO</button>
+        </div>
+    </div>
+
+    <div class="toast" id="toast"></div>
+</main>
+
+    <script>
+        // ==========================================
+        // 接口配置 - 请替换为自己的开发者ID和KEY
+        // ==========================================
+        const API_CONFIG = {
+            // 中转方案查询
+            transferUrl: '/api/railway?kind=transfer',
+            // 直达余票查询
+            directUrl: '/api/railway?kind=direct',
+            // 票价查询
+            priceUrl: '/api/railway?kind=price',
+            id: '',
+            key: ''
+        };
+
+        // ==========================================
+        // 全局状态
+        // ==========================================
+        let currentPage = 1;
+        let isLoading = false;
+        let searchParams = null;
+
+        // 直达车次数据（合并余票+票价）
+        let directTrains = [];
+        // 中转方案数据
+        let transferData = [];
+        // 合并后的统一数据（用于排序显示）
+        let allSchemes = [];
+        // 当前排序
+        let currentSort = { field: 'duration', order: 'asc' };
+        // 中转方案是否有下一页
+        let hasNextPage = true;
+        // 上一页中转数据指纹（用于检测API返回重复数据）
+        let lastTransferFingerprint = '';
+
+        // ==========================================
+        // DOM元素
+        // ==========================================
+        const $ = id => document.getElementById(id);
+        const startStation = $('startStation');
+        const endStation = $('endStation');
+        const departDate = $('departDate');
+        const startError = $('startError');
+        const endError = $('endError');
+        const dateError = $('dateError');
+        const btnSearch = $('btnSearch');
+        const btnSwap = $('btnSwap');
+        const resultArea = $('resultArea');
+        const sortBar = $('sortBar');
+        const pagination = $('pagination');
+        const btnPrev = $('btnPrev');
+        const btnNext = $('btnNext');
+        const pageInfo = $('pageInfo');
+        const pageInput = $('pageInput');
+        const btnPageGo = $('btnPageGo');
+        const historySection = $('historySection');
+        const historyList = $('historyList');
+        const btnClearHistory = $('btnClearHistory');
+        const toastEl = $('toast');
+
+        // ==========================================
+        // 日期初始化
+        // ==========================================
+        function initDatePicker() {
+            const today = new Date();
+            const maxDate = new Date(today);
+            maxDate.setDate(today.getDate() + 15);
+
+            const formatDate = d => {
+                const y = d.getFullYear();
+                const m = String(d.getMonth() + 1).padStart(2, '0');
+                const day = String(d.getDate()).padStart(2, '0');
+                return `${y}-${m}-${day}`;
+            };
+            departDate.min = formatDate(today);
+            departDate.max = formatDate(maxDate);
+            departDate.value = formatDate(today);
+        }
+
+        // ==========================================
+        // 参数校验
+        // ==========================================
+        function validate() {
+            let valid = true;
+
+            if (!startStation.value.trim()) {
+                startError.textContent = '请输入出发站';
+                startStation.classList.add('error');
+                valid = false;
+            } else {
+                startError.textContent = '';
+                startStation.classList.remove('error');
+            }
+
+            if (!endStation.value.trim()) {
+                endError.textContent = '请输入到达站';
+                endStation.classList.add('error');
+                valid = false;
+            } else {
+                endError.textContent = '';
+                endStation.classList.remove('error');
+            }
+
+            if (!departDate.value) {
+                dateError.textContent = '请选择出发日期';
+                departDate.classList.add('error');
+                valid = false;
+            } else {
+                dateError.textContent = '';
+                departDate.classList.remove('error');
+            }
+
+            return valid;
+        }
+
+        // ==========================================
+        // 构建请求参数
+        // ==========================================
+        function buildParams(page) {
+            const add = startStation.value.trim();
+            const end = endStation.value.trim();
+            const dateParts = departDate.value.split('-');
+            return {
+                id: API_CONFIG.id,
+                key: API_CONFIG.key,
+                add,
+                end,
+                y: dateParts[0],
+                m: parseInt(dateParts[1]),
+                d: parseInt(dateParts[2]),
+                page: page || 1
+            };
+        }
+
+        // ==========================================
+        // 通用POST请求
+        // ==========================================
+        async function postApi(url, params) {
+            const body = new URLSearchParams(params);
+            const response = await fetch(url, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+                body: body.toString()
+            });
+            return response.json();
+        }
+
+        // ==========================================
+        // 主查询流程
+        // ==========================================
+        async function doSearch(page = 1) {
+            if (!validate()) return;
+            if (isLoading) return;
+
+            const add = startStation.value.trim();
+            const end = endStation.value.trim();
+            const dateParts = departDate.value.split('-');
+
+            searchParams = { add, end, y: dateParts[0], m: parseInt(dateParts[1]), d: parseInt(dateParts[2]) };
+            currentPage = page;
+
+            // 新查询时重置指纹
+            if (page === 1) lastTransferFingerprint = '';
+
+            setLoading(true);
+            hideSortAndPagination();
+
+            try {
+                // 并行请求：直达余票 + 直达票价 + 中转方案
+                const params = buildParams(page);
+
+                const [directTicketRes, directPriceRes, transferRes] = await Promise.all([
+                    postApi(API_CONFIG.directUrl, params).catch(() => null),
+                    postApi(API_CONFIG.priceUrl, params).catch(() => null),
+                    postApi(API_CONFIG.transferUrl, params).catch(() => null)
+                ]);
+
+                // 处理直达车次（合并余票+票价）
+                directTrains = mergeDirectData(directTicketRes, directPriceRes);
+
+                // 处理中转方案
+                transferData = [];
+                if (transferRes && transferRes.code === 200 && transferRes.datas && transferRes.datas.length > 0) {
+                    transferData = transferRes.datas;
+                }
+
+                // 生成当前页数据指纹（首条+末条方案的关键字段拼接）
+                const currentFingerprint = transferData.length > 0
+                    ? transferData[0].addorder + transferData[0].zzcode + (transferData[transferData.length - 1].addorder || '') + transferData.length
+                    : '';
+
+                // 处理错误（仅当所有接口都失败时报错）
+                const hasAnyError = (!directTicketRes || directTicketRes.code === 400) &&
+                                    (!directPriceRes || directPriceRes.code === 400) &&
+                                    (!transferRes || transferRes.code === 400);
+
+                if (hasAnyError) {
+                    const errMsg = (transferRes && transferRes.msg) || (directTicketRes && directTicketRes.msg) || '请求失败';
+                    showError(errMsg);
+                    return;
+                }
+
+                // 翻页后中转数据为空 => 已到最后一页，回退页码
+                if (page > 1 && transferData.length === 0) {
+                    currentPage = page - 1;
+                    hasNextPage = false;
+                    // 重新渲染上一页的结果（directTrains 已更新，transferData 为空不影响仅直达展示）
+                    buildAllSchemes();
+                    if (allSchemes.length > 0) {
+                        applySortAndRender();
+                        sortBar.classList.add('visible');
+                    } else {
+                        showNoResult();
+                    }
+                    updatePagination();
+                    pagination.classList.add('visible');
+                    showToast('已是最后一页');
+                    setLoading(false);
+                    return;
+                }
+
+                // 翻页后数据与上一页相同 => API未实际分页，回退页码
+                if (page > 1 && currentFingerprint === lastTransferFingerprint) {
+                    currentPage = page - 1;
+                    hasNextPage = false;
+                    // 数据相同，重新渲染保持当前展示
+                    buildAllSchemes();
+                    if (allSchemes.length > 0) {
+                        applySortAndRender();
+                        sortBar.classList.add('visible');
+                    }
+                    updatePagination();
+                    pagination.classList.add('visible');
+                    showToast('已是最后一页');
+                    setLoading(false);
+                    return;
+                }
+
+                // 记录当前页指纹
+                lastTransferFingerprint = currentFingerprint;
+
+                // 判断是否有下一页：返回满5条则可能还有更多，否则已到末页
+                hasNextPage = transferData.length >= 5;
+
+                // 合并所有方案
+                buildAllSchemes();
+                addHistory(searchParams.add, searchParams.end);
+
+                if (allSchemes.length === 0) {
+                    showNoResult();
+                    return;
+                }
+
+                applySortAndRender();
+                sortBar.classList.add('visible');
+                // 仅当存在中转方案时展示分页（直达车次不翻页）
+                if (transferData.length > 0) {
+                    updatePagination();
+                    pagination.classList.add('visible');
+                }
+
+            } catch (err) {
+                showError('网络异常，请检查网络后重试');
+            } finally {
+                setLoading(false);
+            }
+        }
+
+        // ==========================================
+        // 合并直达余票+票价数据
+        // ==========================================
+        function mergeDirectData(ticketRes, priceRes) {
+            const ticketMap = {};
+            if (ticketRes && ticketRes.code === 200 && ticketRes.datas) {
+                ticketRes.datas.forEach(t => {
+                    // train_order in api.php is the number like "76000G32860A"
+                    // train_number in api.php is like "G3286"
+                    ticketMap[t.train_number] = t;
+                });
+            }
+
+            const priceMap = {};
+            if (priceRes && priceRes.code === 200 && priceRes.datas) {
+                priceRes.datas.forEach(p => {
+                    // train_order in api4.php is like "G3286"
+                    priceMap[p.train_order] = p;
+                });
+            }
+
+            // 合并：以余票数据为主，补充票价
+            const merged = [];
+            const allTrainCodes = new Set([...Object.keys(ticketMap), ...Object.keys(priceMap)]);
+
+            allTrainCodes.forEach(code => {
+                const ticket = ticketMap[code];
+                const price = priceMap[code];
+
+                if (ticket && price) {
+                    merged.push({
+                        trainCode: ticket.train_number,
+                        trainOrder: ticket.train_order,
+                        departName: ticket.depart_name,
+                        departTime: ticket.depart_time,
+                        arriveName: ticket.arrive_name,
+                        arriveTime: ticket.arrive_time,
+                        duration: ticket.duration,
+                        durationMin: parseDurationToMin(ticket.duration),
+                        seats: ticket.seats || [],
+                        price: {
+                            edz: price.edz,
+                            ydz: price.ydz,
+                            tdz: price.tdz,
+                            yz: price.yz,
+                            yw: price.yw,
+                            rw: price.rw
+                        },
+                        trainType: price.train_type || '',
+                        dayDiff: price.day_difference || '0'
+                    });
+                } else if (ticket) {
+                    merged.push({
+                        trainCode: ticket.train_number,
+                        trainOrder: ticket.train_order,
+                        departName: ticket.depart_name,
+                        departTime: ticket.depart_time,
+                        arriveName: ticket.arrive_name,
+                        arriveTime: ticket.arrive_time,
+                        duration: ticket.duration,
+                        durationMin: parseDurationToMin(ticket.duration),
+                        seats: ticket.seats || [],
+                        price: null,
+                        trainType: '',
+                        dayDiff: '0'
+                    });
+                } else if (price) {
+                    merged.push({
+                        trainCode: price.train_order,
+                        trainOrder: price.train_number,
+                        departName: price.depart_name,
+                        departTime: price.depart_time,
+                        arriveName: price.arrive_name,
+                        arriveTime: price.arrive_time,
+                        duration: price.alltime,
+                        durationMin: parseDurationToMin(price.alltime),
+                        seats: [],
+                        price: {
+                            edz: price.edz,
+                            ydz: price.ydz,
+                            tdz: price.tdz,
+                            yz: price.yz,
+                            yw: price.yw,
+                            rw: price.rw
+                        },
+                        trainType: price.train_type || '',
+                        dayDiff: price.day_difference || '0'
+                    });
+                }
+            });
+
+            return merged;
+        }
+
+        // 解析时长字符串为分钟数
+        function parseDurationToMin(str) {
+            if (!str) return 0;
+            const parts = str.split(':');
+            if (parts.length === 2) {
+                return parseInt(parts[0]) * 60 + parseInt(parts[1]);
+            }
+            return 0;
+        }
+
+        // 解析出发时间 "HH:MM" 为分钟数，用于排序
+        function parseTimeToMin(str) {
+            if (!str) return 0;
+            const parts = str.split(':');
+            if (parts.length === 2) {
+                return parseInt(parts[0]) * 60 + parseInt(parts[1]);
+            }
+            return 0;
+        }
+
+        // 获取直达车次最低票价
+        function getDirectMinPrice(train) {
+            if (!train.price) return null;
+            const prices = [
+                parseFloat(train.price.edz),
+                parseFloat(train.price.ydz),
+                parseFloat(train.price.tdz),
+                parseFloat(train.price.yz),
+                parseFloat(train.price.yw),
+                parseFloat(train.price.rw)
+            ].filter(p => p > 0);
+            return prices.length > 0 ? Math.min(...prices) : null;
+        }
+
+        // 获取中转方案最低票价（已加载的）
+        function getTransferMinPrice(scheme) {
+            if (!scheme._prices) return null;
+            let total = 0;
+            for (const segPrice of scheme._prices) {
+                if (!segPrice) return null;
+                const prices = [
+                    parseFloat(segPrice.edz),
+                    parseFloat(segPrice.ydz),
+                    parseFloat(segPrice.tdz),
+                    parseFloat(segPrice.yz),
+                    parseFloat(segPrice.yw),
+                    parseFloat(segPrice.rw)
+                ].filter(p => p > 0);
+                if (prices.length === 0) return null;
+                total += Math.min(...prices);
+            }
+            return total > 0 ? total : null;
+        }
+
+        // ==========================================
+        // 构建统一方案列表
+        // ==========================================
+        function buildAllSchemes() {
+            allSchemes = [];
+
+            // 直达车次
+            directTrains.forEach(train => {
+                allSchemes.push({
+                    type: 'direct',
+                    trainCode: train.trainCode,
+                    durationMin: train.durationMin,
+                    departTimeMin: parseTimeToMin(train.departTime),
+                    transfers: 0,
+                    minPrice: getDirectMinPrice(train),
+                    _data: train
+                });
+            });
+
+            // 中转方案
+            transferData.forEach(scheme => {
+                allSchemes.push({
+                    type: 'transfer',
+                    trainCode: scheme.list.map(l => l.code).join('→'),
+                    durationMin: scheme.lishi2 || 0,
+                    departTimeMin: parseTimeToMin(scheme.addtime),
+                    transfers: (scheme.count || 2) - 1,
+                    minPrice: getTransferMinPrice(scheme),
+                    _data: scheme
+                });
+            });
+        }
+
+        // ==========================================
+        // 排序
+        // ==========================================
+        function applySortAndRender() {
+            allSchemes.sort((a, b) => {
+                let valA, valB;
+
+                switch (currentSort.field) {
+                    case 'duration':
+                        valA = a.durationMin;
+                        valB = b.durationMin;
+                        break;
+                    case 'transfers':
+                        valA = a.transfers;
+                        valB = b.transfers;
+                        break;
+                    case 'departTime':
+                        valA = a.departTimeMin;
+                        valB = b.departTimeMin;
+                        break;
+                    case 'price':
+                        valA = a.minPrice || Infinity;
+                        valB = b.minPrice || Infinity;
+                        break;
+                    default:
+                        return 0;
+                }
+
+                return currentSort.order === 'asc' ? valA - valB : valB - valA;
+            });
+
+            renderAllSchemes();
+        }
+
+        // ==========================================
+        // 渲染所有方案
+        // ==========================================
+        function renderAllSchemes() {
+            let html = '<div class="card-list">';
+
+            allSchemes.forEach((scheme, idx) => {
+                if (scheme.type === 'direct') {
+                    html += renderDirectCard(scheme._data, idx);
+                } else {
+                    html += renderTransferCard(scheme._data, idx);
+                }
+            });
+
+            html += '</div>';
+            resultArea.innerHTML = html;
+        }
+
+        // 渲染直达车次卡片
+        function renderDirectCard(train, idx) {
+            const minPrice = getDirectMinPrice(train);
+            const priceTag = minPrice ? `<span class="tag tag-price">&yen;${minPrice}</span>` : '';
+
+            // 余票概览
+            let ticketTag = '';
+            if (train.seats.length > 0) {
+                const edzSeat = train.seats.find(s => s.type.includes('二等座'));
+                const yzSeat = train.seats.find(s => s.type === '硬座');
+                const ywSeat = train.seats.find(s => s.type.includes('硬卧'));
+                const rwSeat = train.seats.find(s => s.type.includes('软卧'));
+
+                const target = edzSeat || yzSeat || ywSeat || rwSeat;
+                if (target) {
+                    const stockText = target.stock === -1 ? '有票' : target.stock === 0 ? '无票' : target.stock + '张';
+                    const stockClass = target.stock === 0 ? 'no-ticket' : 'has-ticket';
+                    const seatName = target.type.replace(/\(.*\)/, '');
+                    ticketTag = `<span class="tag tag-ticket ${stockClass}">${seatName} ${stockText}</span>`;
+                }
+            }
+
+            return `
+            <div class="card" data-idx="${idx}" onclick="toggleCard(this)">
+                <div class="card-header">
+                    <div class="card-route">
+                        <div class="card-station">
+                            <div class="time">${train.departTime}</div>
+                            <div class="name">${train.departName}</div>
+                        </div>
+                        <div class="card-arrow">
+                            <div class="duration">${train.duration}</div>
+                            <div class="line"></div>
+                            <div class="train-codes">${train.trainCode}</div>
+                        </div>
+                        <div class="card-station">
+                            <div class="time">${train.arriveTime}</div>
+                            <div class="name">${train.arriveName}</div>
+                        </div>
+                    </div>
+                    <div class="card-meta">
+                        <span class="tag tag-direct">直达</span>
+                        ${ticketTag}
+                        ${priceTag}
+                    </div>
+                    <span class="expand-icon">▼</span>
+                </div>
+                <div class="card-detail" onclick="event.stopPropagation()">
+                    ${renderDirectDetail(train)}
+                </div>
+            </div>`;
+        }
+
+        // 渲染直达详情
+        function renderDirectDetail(train) {
+            let html = `
+            <div class="detail-segment">
+                <div class="segment-header">
+                    <span class="segment-badge">1</span>
+                    <span class="segment-title">${train.trainCode}${train.trainType ? ' · ' + train.trainType : ''}</span>
+                </div>
+                <div class="segment-info">
+                    <div class="seg-station">
+                        <div class="seg-time">${train.departTime}</div>
+                        <div class="seg-name">${train.departName}</div>
+                    </div>
+                    <div class="seg-arrow">
+                        <div class="seg-train">${train.trainCode}</div>
+                        <div class="seg-line"></div>
+                        <div class="seg-duration">${train.duration}${train.dayDiff !== '0' ? ' (次日到达)' : ''}</div>
+                    </div>
+                    <div class="seg-station">
+                        <div class="seg-time">${train.arriveTime}</div>
+                        <div class="seg-name">${train.arriveName}</div>
+                    </div>
+                </div>`;
+
+            // 余票表格
+            if (train.seats.length > 0) {
+                const validSeats = train.seats.filter(s => s.stock !== 0 || s.type.includes('二等座') || s.type.includes('硬座'));
+                if (validSeats.length > 0) {
+                    html += `<table class="ticket-table">
+                        <thead><tr>${validSeats.map(s => `<th>${s.type.replace(/\(.*\)/, '')}</th>`).join('')}</tr></thead>
+                        <tbody><tr>${validSeats.map(s => {
+                            let cls = '';
+                            let text = '';
+                            if (s.stock === -1) { cls = 'ticket-has'; text = '有票'; }
+                            else if (s.stock === 0) { cls = 'ticket-no'; text = '无票'; }
+                            else { cls = 'ticket-has'; text = s.stock + '张'; }
+                            return `<td class="${cls}">${text}</td>`;
+                        }).join('')}</tr></tbody>
+                    </table>`;
+                }
+            }
+
+            // 票价信息
+            if (train.price) {
+                const priceItems = [];
+                if (parseFloat(train.price.tdz) > 0) priceItems.push({ name: '商务座/特等座', val: train.price.tdz });
+                if (parseFloat(train.price.ydz) > 0) priceItems.push({ name: '一等座', val: train.price.ydz });
+                if (parseFloat(train.price.edz) > 0) priceItems.push({ name: '二等座', val: train.price.edz });
+                if (parseFloat(train.price.rw) > 0) priceItems.push({ name: '软卧', val: train.price.rw });
+                if (parseFloat(train.price.yw) > 0) priceItems.push({ name: '硬卧', val: train.price.yw });
+                if (parseFloat(train.price.yz) > 0) priceItems.push({ name: '硬座', val: train.price.yz });
+
+                if (priceItems.length > 0) {
+                    html += `<div class="price-result">
+                        <div class="price-row">
+                            ${priceItems.map(p => `<span class="price-item"><span class="price-label">${p.name}：</span>&yen;${p.val}</span>`).join('')}
+                        </div>
+                    </div>`;
+                }
+            } else {
+                html += `<div class="price-result"><span style="color:#999;">票价信息加载失败</span></div>`;
+            }
+
+            html += '</div>';
+            return html;
+        }
+
+        // 直达座位概览
+        function getDirectSeatSummary(train) {
+            if (!train.seats || train.seats.length === 0) return '';
+            const edz = train.seats.find(s => s.type.includes('二等座'));
+            if (edz) {
+                const text = edz.stock === -1 ? '有票' : edz.stock === 0 ? '无票' : edz.stock + '张';
+                return text;
+            }
+            return '';
+        }
+
+        // 渲染中转方案卡片
+        function renderTransferCard(scheme, idx) {
+            const trainCodes = scheme.list.map(l => l.code).join(' → ');
+            const isSameStation = scheme.hcst === '0';
+            const ticketSummary = getTransferTicketSummary(scheme.list);
+            const priceTag = scheme._priceLoaded && scheme._totalPrice
+                ? `<span class="tag tag-price">&yen;${scheme._totalPrice.toFixed(2)}</span>`
+                : '';
+
+            return `
+            <div class="card" data-idx="${idx}" onclick="toggleCard(this)">
+                <div class="card-header">
+                    <div class="card-route">
+                        <div class="card-station">
+                            <div class="time">${scheme.addtime}</div>
+                            <div class="name">${scheme.addname}</div>
+                        </div>
+                        <div class="card-arrow">
+                            <div class="duration">${scheme.lishi}</div>
+                            <div class="line"></div>
+                            <div class="train-codes">${trainCodes}</div>
+                        </div>
+                        <div class="card-station">
+                            <div class="time">${scheme.endtime}</div>
+                            <div class="name">${scheme.endname}</div>
+                        </div>
+                    </div>
+                    <div class="card-meta">
+                        <span class="tag tag-transfer">中转</span>
+                        <span class="tag ${isSameStation ? 'tag-same-station' : 'tag-diff-station'}">${isSameStation ? '同站换乘' : '异站换乘'}</span>
+                        <span class="tag tag-wait">${scheme.zzname} 等候${scheme.zzwait}</span>
+                        ${ticketSummary}
+                        ${priceTag}
+                    </div>
+                    <span class="expand-icon">▼</span>
+                </div>
+                <div class="card-detail" onclick="event.stopPropagation()">
+                    ${renderTransferDetail(scheme, idx)}
+                </div>
+            </div>`;
+        }
+
+        // 渲染中转详情
+        function renderTransferDetail(scheme, idx) {
+            let html = '';
+
+            scheme.list.forEach((seg, i) => {
+                const seats = [
+                    { name: '商务座', val: seg.swz },
+                    { name: '一等座', val: seg.ydz },
+                    { name: '二等座', val: seg.edz },
+                    { name: '特等座', val: seg.tdz },
+                    { name: '软卧', val: seg.rw },
+                    { name: '硬卧', val: seg.yw },
+                    { name: '软座', val: seg.rz },
+                    { name: '硬座', val: seg.yz },
+                    { name: '无座', val: seg.wz },
+                    { name: '商务软座', val: seg.srrb },
+                    { name: '优等座', val: seg.yb },
+                    { name: '其他', val: seg.qt }
+                ].filter(s => s.val && s.val !== '--');
+
+                const dayText = (seg.day && seg.day !== '0') ? `(次日到达)` : '';
+
+                html += `
+                <div class="detail-segment">
+                    <div class="segment-header">
+                        <span class="segment-badge">${i + 1}</span>
+                        <span class="segment-title">第${i + 1}段 · ${seg.code}</span>
+                    </div>
+                    <div class="segment-info">
+                        <div class="seg-station">
+                            <div class="seg-time">${seg.addtime}</div>
+                            <div class="seg-name">${seg.addname}</div>
+                        </div>
+                        <div class="seg-arrow">
+                            <div class="seg-train">${seg.code}</div>
+                            <div class="seg-line"></div>
+                            <div class="seg-duration">${seg.lishi} ${dayText}</div>
+                        </div>
+                        <div class="seg-station">
+                            <div class="seg-time">${seg.endtime}</div>
+                            <div class="seg-name">${seg.endname}</div>
+                        </div>
+                    </div>`;
+
+                if (seats.length > 0) {
+                    html += `<table class="ticket-table">
+                        <thead><tr>${seats.map(s => `<th>${s.name}</th>`).join('')}</tr></thead>
+                        <tbody><tr>${seats.map(s => {
+                            let cls = '';
+                            if (s.val === '无' || s.val === '0') cls = 'ticket-no';
+                            else if (s.val === '有') cls = 'ticket-has';
+                            else if (/^\d+$/.test(s.val)) cls = 'ticket-has';
+                            return `<td class="${cls}">${s.val === '有' ? '有票' : (s.val === '无' || s.val === '0') ? '无票' : s.val}</td>`;
+                        }).join('')}</tr></tbody>
+                    </table>`;
+                }
+
+                const extras = [];
+                if (seg.scard === '1') extras.push('<span class="extra-item"><span class="check-icon">✓</span> 支持身份证检票</span>');
+                if (extras.length) {
+                    html += `<div class="segment-extra">${extras.join('')}</div>`;
+                }
+
+                html += '</div>';
+            });
+
+            // 中转方案票价查询
+            const priceId = `transfer-price-${idx}`;
+            html += `<div id="${priceId}">`;
+
+            if (scheme._priceLoaded && scheme._prices) {
+                html += renderTransferPriceResult(scheme);
+            } else {
+                html += `<button class="btn-query-price" onclick="event.stopPropagation(); queryTransferPrice(${idx})">查询票价</button>`;
+            }
+
+            html += '</div>';
+
+            return html;
+        }
+
+        // 查询中转方案票价
+        async function queryTransferPrice(idx) {
+            const scheme = allSchemes[idx]._data;
+            const priceDiv = $(`transfer-price-${idx}`);
+            if (!priceDiv) return;
+
+            const btn = priceDiv.querySelector('.btn-query-price');
+            if (btn) {
+                btn.disabled = true;
+                btn.textContent = '查询中...';
+            }
+
+            const params = buildParams();
+            const prices = [];
+            let allSuccess = true;
+
+            try {
+                // 为每段行程查询票价
+                const promises = scheme.list.map(seg => {
+                    const segParams = {
+                        ...params,
+                        add: seg.addname,
+                        end: seg.endname
+                    };
+                    return postApi(API_CONFIG.priceUrl, segParams).catch(() => null);
+                });
+
+                const results = await Promise.all(promises);
+
+                results.forEach((res, i) => {
+                    if (res && res.code === 200 && res.datas) {
+                        // 找到匹配的车次
+                        const match = res.datas.find(d => d.train_order === scheme.list[i].code);
+                        if (match) {
+                            prices.push({
+                                edz: match.edz,
+                                ydz: match.ydz,
+                                tdz: match.tdz,
+                                yz: match.yz,
+                                yw: match.yw,
+                                rw: match.rw
+                            });
+                        } else {
+                            prices.push(null);
+                            allSuccess = false;
+                        }
+                    } else {
+                        prices.push(null);
+                        allSuccess = false;
+                    }
+                });
+
+                scheme._prices = prices;
+                scheme._priceLoaded = true;
+
+                // 计算总价
+                let totalPrice = 0;
+                let canCalc = true;
+                for (const p of prices) {
+                    if (!p) { canCalc = false; break; }
+                    const minP = [parseFloat(p.edz), parseFloat(p.ydz), parseFloat(p.tdz), parseFloat(p.yz), parseFloat(p.yw), parseFloat(p.rw)].filter(v => v > 0);
+                    if (minP.length === 0) { canCalc = false; break; }
+                    totalPrice += Math.min(...minP);
+                }
+                scheme._totalPrice = canCalc ? totalPrice : null;
+
+                // 更新统一数据中的最低票价
+                allSchemes[idx].minPrice = scheme._totalPrice;
+
+                // 重新渲染该卡片的票价区域
+                priceDiv.innerHTML = renderTransferPriceResult(scheme);
+
+            } catch (err) {
+                priceDiv.innerHTML = `<div class="price-result"><span style="color:#e74c3c;">票价查询失败，请重试</span>
+                    <button class="btn-query-price" onclick="event.stopPropagation(); queryTransferPrice(${idx})" style="margin-left:10px;">重试</button></div>`;
+            }
+        }
+
+        // 渲染中转票价结果
+        function renderTransferPriceResult(scheme) {
+            if (!scheme._prices || scheme._prices.length === 0) {
+                return '<div class="price-result"><span style="color:#999;">暂无票价数据</span></div>';
+            }
+
+            let html = '<div class="price-result">';
+
+            scheme._prices.forEach((p, i) => {
+                if (!p) {
+                    html += `<div class="price-row" style="margin-bottom:6px;"><span style="color:#999;">第${i + 1}段 (${scheme.list[i].code})：票价查询失败</span></div>`;
+                    return;
+                }
+                const items = [];
+                if (parseFloat(p.tdz) > 0) items.push(`商务座 ¥${p.tdz}`);
+                if (parseFloat(p.ydz) > 0) items.push(`一等座 ¥${p.ydz}`);
+                if (parseFloat(p.edz) > 0) items.push(`二等座 ¥${p.edz}`);
+                if (parseFloat(p.rw) > 0) items.push(`软卧 ¥${p.rw}`);
+                if (parseFloat(p.yw) > 0) items.push(`硬卧 ¥${p.yw}`);
+                if (parseFloat(p.yz) > 0) items.push(`硬座 ¥${p.yz}`);
+
+                html += `<div class="price-row" style="margin-bottom:6px;">
+                    <span style="color:#1a73e8;font-weight:600;">第${i + 1}段 ${scheme.list[i].code}：</span>
+                    ${items.map(item => {
+                        const parts = item.split(' ');
+                        return `<span class="price-item"><span class="price-label">${parts[0]}：</span>${parts[1]}</span>`;
+                    }).join('')}
+                </div>`;
+            });
+
+            if (scheme._totalPrice) {
+                html += `<div class="price-row" style="background:#fff8e1;border-color:#ffe082;">
+                    <span style="color:#f57f17;font-weight:600;">合计最低票价：¥${scheme._totalPrice.toFixed(2)}</span>
+                </div>`;
+            }
+
+            html += '</div>';
+            return html;
+        }
+
+        function getTransferTicketSummary(list) {
+            const edz = list[0].edz;
+            const yz = list[0].yz;
+            const rw = list[0].rw;
+            const yw = list[0].yw;
+
+            let seatName = '';
+            let status = '';
+            let cssClass = '';
+
+            if (edz && edz !== '--') {
+                seatName = '二等座';
+                status = edz;
+            } else if (yz && yz !== '--') {
+                seatName = '硬座';
+                status = yz;
+            } else if (yw && yw !== '--') {
+                seatName = '硬卧';
+                status = yw;
+            } else if (rw && rw !== '--') {
+                seatName = '软卧';
+                status = rw;
+            }
+
+            if (!seatName) return '';
+
+            if (status === '无' || status === '0') {
+                cssClass = 'no-ticket';
+            } else {
+                cssClass = 'has-ticket';
+            }
+
+            return `<span class="tag tag-ticket ${cssClass}">${seatName} ${status === '有' ? '有票' : (status === '无' || status === '0') ? '无票' : status + '张'}</span>`;
+        }
+
+        function toggleCard(el) {
+            el.classList.toggle('expanded');
+        }
+
+        // ==========================================
+        // 排序按钮事件
+        // ==========================================
+        document.querySelectorAll('.sort-btn').forEach(btn => {
+            btn.addEventListener('click', function () {
+                const field = this.dataset.sort;
+
+                if (currentSort.field === field) {
+                    currentSort.order = currentSort.order === 'asc' ? 'desc' : 'asc';
+                } else {
+                    currentSort.field = field;
+                    currentSort.order = 'asc';
+                }
+
+                document.querySelectorAll('.sort-btn').forEach(b => {
+                    b.classList.remove('active', 'asc', 'desc');
+                });
+                this.classList.add('active', currentSort.order);
+
+                applySortAndRender();
+            });
+        });
+
+        // ==========================================
+        // 分页
+        // ==========================================
+        function updatePagination() {
+            btnPrev.disabled = currentPage <= 1;
+            btnNext.disabled = !hasNextPage;
+            pageInfo.textContent = `第 ${currentPage} 页`;
+            pageInput.value = currentPage;
+            pageInput.max = hasNextPage ? currentPage + 1 : currentPage;
+        }
+
+        btnPrev.addEventListener('click', () => {
+            if (currentPage > 1) doSearch(currentPage - 1);
+        });
+
+        btnNext.addEventListener('click', () => {
+            if (hasNextPage) doSearch(currentPage + 1);
+        });
+
+        btnPageGo.addEventListener('click', () => {
+            const targetPage = parseInt(pageInput.value);
+            if (isNaN(targetPage) || targetPage < 1) {
+                showToast('请输入有效页码');
+                return;
+            }
+            if (targetPage === currentPage) return;
+            if (targetPage > currentPage + 1 && !hasNextPage) {
+                showToast('已超出最大页码');
+                return;
+            }
+            doSearch(targetPage);
+        });
+
+        pageInput.addEventListener('keypress', (e) => {
+            if (e.key === 'Enter') btnPageGo.click();
+        });
+
+        // ==========================================
+        // 站点对换
+        // ==========================================
+        btnSwap.addEventListener('click', () => {
+            const temp = startStation.value;
+            startStation.value = endStation.value;
+            endStation.value = temp;
+            // 清除错误提示
+            startError.textContent = '';
+            endError.textContent = '';
+            startStation.classList.remove('error');
+            endStation.classList.remove('error');
+        });
+
+        // ==========================================
+        // 查询历史 (localStorage)
+        // ==========================================
+        const HISTORY_KEY = 'train_transfer_history';
+        const MAX_HISTORY = 8;
+
+        function getHistory() {
+            try {
+                return JSON.parse(localStorage.getItem(HISTORY_KEY)) || [];
+            } catch {
+                return [];
+            }
+        }
+
+        function addHistory(start, end) {
+            let history = getHistory();
+            history = history.filter(h => !(h.start === start && h.end === end));
+            history.unshift({ start, end, time: Date.now() });
+            if (history.length > MAX_HISTORY) history = history.slice(0, MAX_HISTORY);
+            localStorage.setItem(HISTORY_KEY, JSON.stringify(history));
+            renderHistory();
+        }
+
+        function removeHistory(index) {
+            let history = getHistory();
+            history.splice(index, 1);
+            localStorage.setItem(HISTORY_KEY, JSON.stringify(history));
+            renderHistory();
+        }
+
+        function clearHistory() {
+            localStorage.removeItem(HISTORY_KEY);
+            renderHistory();
+        }
+
+        function renderHistory() {
+            const history = getHistory();
+            if (history.length === 0) {
+                historySection.style.display = 'none';
+                return;
+            }
+
+            historySection.style.display = 'block';
+            historyList.innerHTML = history.map((h, i) => `
+                <span class="history-tag" data-index="${i}">
+                    <span class="history-content">${h.start} <span class="arrow">→</span> ${h.end}</span>
+                    <span class="remove" onclick="event.stopPropagation(); removeHistory(${i})" title="删除">×</span>
+                </span>
+            `).join('');
+
+            historyList.querySelectorAll('.history-tag').forEach(tag => {
+                tag.addEventListener('click', function (e) {
+                    if (e.target.classList.contains('remove')) return;
+                    const idx = parseInt(this.dataset.index);
+                    const item = history[idx];
+                    startStation.value = item.start;
+                    endStation.value = item.end;
+                    doSearch(1);
+                });
+            });
+        }
+
+        btnClearHistory.addEventListener('click', clearHistory);
+
+        // ==========================================
+        // UI状态管理
+        // ==========================================
+        function setLoading(loading) {
+            isLoading = loading;
+            btnSearch.disabled = loading;
+            btnSearch.textContent = loading ? '查询中...' : '查询';
+
+            if (loading) {
+                resultArea.innerHTML = `
+                    <div class="loading">
+                        <div class="spinner"></div>
+                        <p>正在查询直达车次和中转方案...</p>
+                    </div>`;
+            }
+        }
+
+        function showError(msg) {
+            resultArea.innerHTML = `<div class="error-msg-global">${msg}</div>`;
+        }
+
+        function showNoResult() {
+            resultArea.innerHTML = `<div class="no-result">暂无符合条件的车次方案</div>`;
+        }
+
+        function hideSortAndPagination() {
+            sortBar.classList.remove('visible');
+            pagination.classList.remove('visible');
+        }
+
+        function showToast(msg) {
+            toastEl.textContent = msg;
+            toastEl.classList.add('show');
+            setTimeout(() => toastEl.classList.remove('show'), 2000);
+        }
+
+        // ==========================================
+        // 事件绑定
+        // ==========================================
+        btnSearch.addEventListener('click', () => doSearch(1));
+
+        [startStation, endStation].forEach(input => {
+            input.addEventListener('keypress', e => {
+                if (e.key === 'Enter') doSearch(1);
+            });
+        });
+
+        startStation.addEventListener('input', () => {
+            startError.textContent = '';
+            startStation.classList.remove('error');
+        });
+
+        endStation.addEventListener('input', () => {
+            endError.textContent = '';
+            endStation.classList.remove('error');
+        });
+
+        // ==========================================
+        // 初始化
+        // ==========================================
+        initDatePicker();
+        renderHistory();
+    </script>
+</body>
+</html>

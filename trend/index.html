@@ -1,0 +1,159 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="description" content="资产走势查询：A 股、指数、ETF 与场外基金的实时分时、K 线与净值曲线，任意代码搜索。">
+<title>资产走势查询 · 个人工具箱</title>
+<link rel="stylesheet" href="/assets/site.css">
+<link rel="stylesheet" href="/trend/css/style.css">
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'><rect width='32' height='32' rx='9' fill='%230d6b54'/><path d='M7 23l6-6 4 3 8-9' stroke='white' stroke-width='2.4' fill='none' stroke-linecap='round' stroke-linejoin='round'/></svg>">
+</head>
+<body>
+<script src="/assets/site.js" data-app="trend"></script>
+
+<section class="page-head">
+  <div class="shell">
+    <nav class="crumbs" aria-label="面包屑"><a href="/">首页</a><span>/</span>资产走势</nav>
+    <p class="kicker"><span class="tick"></span>Market</p>
+    <h1>资产走势查询</h1>
+    <p class="lede">
+      输入中文名称、6 位代码或拼音首字母，查看 A 股、指数、ETF 的分时与日 / 周 / 月 K，
+      以及场外基金的单位净值曲线；支持前 / 后复权与任意区间。
+    </p>
+    <div class="meta-row">
+      <span class="meta-pill"><i></i>腾讯财经实时行情</span>
+      <span class="meta-pill"><i></i>东方财富基金净值</span>
+      <span class="meta-pill"><i></i>无需登录 · 本地收藏</span>
+    </div>
+  </div>
+</section>
+
+<main class="app-main">
+  <div class="container">
+
+    <!-- 搜索与筛选 -->
+    <section class="controls card">
+      <div class="control-row search-block">
+        <label for="search-input">搜索资产（名称 / 代码 / 拼音）</label>
+        <div class="search-wrap">
+          <input id="search-input" type="text" autocomplete="off" placeholder="输入 茅台 / 006480 / 纳斯达克 / nndx 后按回车" />
+          <button id="fav-toggle" type="button" title="收藏当前资产" aria-label="收藏当前资产">☆</button>
+          <div id="suggest-list" class="suggest-list"></div>
+        </div>
+      </div>
+
+      <div class="control-row fav-row" id="fav-row" style="display:none">
+        <label>快速查询（点击标签加载）</label>
+        <div class="fav-chips" id="fav-chips"></div>
+      </div>
+
+      <div class="control-row">
+        <label>周期</label>
+        <div class="range-chips" id="period-chips">
+          <button data-period="trend">分时</button>
+          <button data-period="1d" class="active">日K</button>
+          <button data-period="week">周K</button>
+          <button data-period="month">月K</button>
+          <button data-period="nav" style="display:none">净值</button>
+        </div>
+      </div>
+
+      <div class="control-row" id="fqt-row">
+        <label>复权</label>
+        <div class="range-chips" id="fqt-chips">
+          <button data-fqt="1" class="active">前复权</button>
+          <button data-fqt="0">不复权</button>
+          <button data-fqt="2">后复权</button>
+        </div>
+      </div>
+
+      <div class="control-row range-block">
+        <label>区间</label>
+        <div class="range-chips" id="range-chips">
+          <button data-range="1m">近1月</button>
+          <button data-range="3m">近3月</button>
+          <button data-range="6m">近6月</button>
+          <button data-range="1y" class="active">近1年</button>
+          <button data-range="all">全部</button>
+        </div>
+      </div>
+
+      <div class="control-row date-row range-block">
+        <div>
+          <label for="start-date">开始日期</label>
+          <input type="date" id="start-date" />
+        </div>
+        <div>
+          <label for="end-date">结束日期</label>
+          <input type="date" id="end-date" />
+        </div>
+        <button id="apply-date" class="btn-secondary">应用</button>
+      </div>
+
+      <div class="control-row refresh-row range-block">
+        <label class="checkbox-label">
+          <input type="checkbox" id="auto-refresh" />
+          盘中自动刷新分时（每 30 秒）
+        </label>
+        <span class="hint" id="market-status"></span>
+      </div>
+    </section>
+
+    <!-- 关键指标 -->
+    <section class="metrics card" id="metrics-panel">
+      <div class="metric">
+        <span class="metric-label">最新价</span>
+        <strong class="metric-value" id="metric-close">-</strong>
+      </div>
+      <div class="metric">
+        <span class="metric-label">涨跌幅</span>
+        <strong class="metric-value" id="metric-return">-</strong>
+      </div>
+      <div class="metric">
+        <span class="metric-label">年化波动率</span>
+        <strong class="metric-value" id="metric-vol">-</strong>
+      </div>
+      <div class="metric">
+        <span class="metric-label">最大回撤</span>
+        <strong class="metric-value" id="metric-dd">-</strong>
+      </div>
+      <div class="metric">
+        <span class="metric-label">区间最高</span>
+        <strong class="metric-value" id="metric-high">-</strong>
+      </div>
+      <div class="metric">
+        <span class="metric-label">区间最低</span>
+        <strong class="metric-value" id="metric-low">-</strong>
+      </div>
+      <div id="metric-extra" style="display:contents"></div>
+    </section>
+
+    <!-- 图表 -->
+    <section class="chart-container card">
+      <div id="trend-chart" class="chart"></div>
+    </section>
+
+    <!-- 说明 -->
+    <section class="info card">
+      <h2>关于数据</h2>
+      <p>
+        本页面为纯静态前端，浏览器直接调用腾讯财经公开行情接口获取
+        <strong>实时</strong>行情（基金净值来自东方财富），无需后端、无需预先抓取。
+      </p>
+      <ul>
+        <li><strong>股票 / 指数 / ETF</strong>：当日分时（盘中实时刷新）+ 日 / 周 / 月 K 线，支持前 / 后复权</li>
+        <li><strong>场外基金</strong>：单位净值历史曲线 + 当日涨跌展示</li>
+        <li>搜索支持中文名称、6 位代码、拼音首字母；收藏与上次查询保存在本地</li>
+      </ul>
+      <p class="warn">注意：行情接口为腾讯财经非官方公开接口，无 SLA 保证，偶发限流或字段变更属正常现象。</p>
+      <p class="source-note" id="source-note">数据来源：腾讯财经（实时）</p>
+    </section>
+
+  </div>
+</main>
+
+<script src="/assets/vendor/echarts.min.js"></script>
+<script src="/trend/js/app.js"></script>
+</body>
+</html>

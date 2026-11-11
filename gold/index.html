@@ -1,0 +1,2591 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="default">
+    <title>积存金持仓管理 · 个人工具箱</title>
+    <link rel="stylesheet" href="/assets/site.css">
+    <script src="/assets/vendor/chart.umd.min.js">
+    </script>
+    <style>
+        :root {
+            --touch-min: 44px;
+            --font-base: 14px;
+            --font-sm: 12px;
+            --font-lg: 16px;
+            --font-xl: 18px;
+            --radius: var(--r);
+            --radius-lg: var(--r-lg);
+            --color-primary: var(--teal);
+            --color-danger: var(--red);
+            --color-blue: var(--accent);
+            --color-gold: #d9a441;
+            --color-bg: transparent;
+            --color-text: var(--ink);
+            --color-text-light: var(--ink-3);
+            --color-border: var(--line);
+            --spacing: 12px;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "Microsoft YaHei", "PingFang SC", sans-serif;
+            -webkit-tap-highlight-color: transparent;
+            -webkit-font-smoothing: antialiased;
+        }
+
+        body {
+            background-color: var(--color-bg);
+            padding: 0;
+            max-width: 880px;
+            margin: 0 auto;
+            font-size: var(--font-base);
+            color: var(--color-text);
+            -webkit-text-size-adjust: 100%;
+            -webkit-overflow-scrolling: touch;
+        }
+
+        .calculator-box {
+            background: var(--surface);
+            padding: 16px;
+            border-radius: var(--radius-lg);
+            box-shadow: 0 2px 12px rgba(0, 0, 0, 0.06);
+        }
+
+        .title {
+            text-align: center;
+            color: var(--color-text);
+            margin-bottom: 20px;
+            font-size: 20px;
+            font-weight: 700;
+        }
+
+        .form-group {
+            margin-bottom: 14px;
+        }
+
+        label {
+            display: block;
+            margin-bottom: 6px;
+            color: #34495e;
+            font-weight: 500;
+            font-size: var(--font-base);
+        }
+
+        input {
+            width: 100%;
+            padding: 12px 14px;
+            border: 1px solid var(--color-border);
+            border-radius: var(--radius);
+            font-size: 16px;
+            outline: none;
+            transition: border 0.3s;
+            background: var(--surface);
+            min-height: var(--touch-min);
+            -webkit-appearance: none;
+            appearance: none;
+        }
+
+        input:focus {
+            border-color: var(--color-primary);
+        }
+
+        .btn-calc {
+            width: 100%;
+            padding: 14px;
+            min-height: var(--touch-min);
+            background-color: var(--color-primary);
+            color: white;
+            border: none;
+            border-radius: var(--radius);
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: background 0.2s;
+            touch-action: manipulation;
+            -webkit-appearance: none;
+            appearance: none;
+        }
+
+        .btn-calc:active {
+            background-color: #1e8449;
+            transform: scale(0.98);
+        }
+
+        @media (hover: hover) {
+            .btn-calc:hover {
+                background-color: #219653;
+            }
+        }
+
+        /* ========== 实时金价卡片 ========== */
+        .gold-price-card {
+            background: linear-gradient(135deg, #1a1a2e 0%, #16213e 50%, #0f3460 100%);
+            color: #fff;
+            padding: 16px;
+            border-radius: var(--radius-lg);
+            margin-bottom: 14px;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .gold-price-card::before {
+            content: '';
+            position: absolute;
+            top: -50%;
+            right: -30%;
+            width: 180px;
+            height: 180px;
+            background: radial-gradient(circle, rgba(255, 215, 0, 0.12) 0%, transparent 70%);
+            border-radius: 50%;
+            pointer-events: none;
+        }
+
+        .gold-price-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 10px;
+            position: relative;
+            z-index: 1;
+        }
+
+        .gold-price-header .card-title {
+            font-size: var(--font-base);
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        .gold-price-status {
+            font-size: 11px;
+            padding: 4px 10px;
+            border-radius: 10px;
+            background: rgba(46, 204, 113, 0.2);
+            color: var(--teal);
+            min-height: 22px;
+            display: flex;
+            align-items: center;
+        }
+
+        .gold-price-status.error {
+            background: rgba(231, 76, 60, 0.2);
+            color: var(--red);
+        }
+
+        .gold-price-main {
+            display: flex;
+            align-items: baseline;
+            gap: 8px;
+            margin-bottom: 10px;
+            position: relative;
+            z-index: 1;
+        }
+
+        .gold-price-current {
+            font-size: 38px;
+            font-weight: bold;
+            color: var(--color-gold);
+            line-height: 1;
+        }
+
+        .gold-price-unit {
+            font-size: var(--font-base);
+            color: rgba(255, 255, 255, 0.6);
+        }
+
+        .gold-price-change {
+            font-size: 13px;
+            padding: 2px 8px;
+            border-radius: 4px;
+            margin-left: 6px;
+        }
+
+        .gold-price-change.up {
+            background: rgba(231, 76, 60, 0.2);
+            color: var(--red);
+        }
+
+        .gold-price-change.down {
+            background: rgba(46, 204, 113, 0.2);
+            color: var(--teal);
+        }
+
+        .gold-price-info {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 8px;
+            position: relative;
+            z-index: 1;
+        }
+
+        .gold-price-info-item {
+            background: rgba(255, 255, 255, 0.08);
+            padding: 8px 6px;
+            border-radius: var(--radius);
+            text-align: center;
+        }
+
+        .gold-price-info-label {
+            font-size: 11px;
+            color: rgba(255, 255, 255, 0.5);
+            margin-bottom: 3px;
+        }
+
+        .gold-price-info-value {
+            font-size: 15px;
+            font-weight: bold;
+        }
+
+        .gold-price-info-value.high {
+            color: var(--red);
+        }
+
+        .gold-price-info-value.low {
+            color: var(--teal);
+        }
+
+        .gold-price-update {
+            text-align: right;
+            font-size: 11px;
+            color: rgba(255, 255, 255, 0.4);
+            margin-top: 8px;
+            position: relative;
+            z-index: 1;
+        }
+
+        /* ========== 图表区域 ========== */
+        .chart-card {
+            background: var(--surface);
+            padding: 14px;
+            border-radius: var(--radius-lg);
+            margin-bottom: 14px;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.05);
+        }
+
+        .chart-card .card-title {
+            font-size: var(--font-base);
+            color: var(--color-text);
+            margin-bottom: 10px;
+        }
+
+        .chart-section {
+            margin-bottom: 14px;
+        }
+
+        .chart-section:last-child {
+            margin-bottom: 0;
+        }
+
+        .chart-section-title {
+            font-size: 13px;
+            color: var(--color-text-light);
+            margin-bottom: 6px;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        .chart-section-dot {
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+            display: inline-block;
+        }
+
+        .chart-section-dot.gold {
+            background: #ffd700;
+        }
+
+        .chart-section-dot.blue {
+            background: var(--accent);
+        }
+
+        .chart-container {
+            position: relative;
+            width: 100%;
+            height: 200px;
+        }
+
+        .chart-container canvas {
+            width: 100% !important;
+            height: 100% !important;
+        }
+
+        .chart-divider {
+            border: none;
+            border-top: 1px solid var(--line);
+            margin: 10px 0;
+        }
+
+        .chart-swipe-hint {
+            text-align: center;
+            font-size: 11px;
+            color: var(--line-strong);
+            margin-top: 6px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 4px;
+        }
+
+        .chart-loading {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            height: 200px;
+            color: var(--line-strong);
+            font-size: 13px;
+        }
+
+        /* ========== 图表刷新按钮 ========== */
+        .chart-refresh-btn {
+            margin-left: auto;
+            width: 32px;
+            height: 32px;
+            min-width: 32px;
+            min-height: 32px;
+            border: 1px solid var(--line);
+            border-radius: 50%;
+            background: var(--surface);
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: all 0.2s ease;
+            touch-action: manipulation;
+            -webkit-appearance: none;
+            appearance: none;
+            position: relative;
+        }
+
+        .chart-refresh-btn:active {
+            background: #f0f0f0;
+            border-color: var(--line-strong);
+            transform: scale(0.92);
+        }
+
+        @media (hover: hover) {
+            .chart-refresh-btn:hover {
+                background: var(--surface-2);
+                border-color: var(--accent);
+            }
+
+            .chart-refresh-btn:hover .refresh-icon {
+                color: var(--accent);
+            }
+        }
+
+        .chart-refresh-btn.loading {
+            pointer-events: none;
+            border-color: var(--accent);
+            background: #eaf4fd;
+        }
+
+        .chart-refresh-btn.loading .refresh-icon {
+            animation: spin 0.7s linear infinite;
+            color: var(--accent);
+        }
+
+        .chart-refresh-btn.success {
+            border-color: var(--teal);
+            background: #eafaf1;
+            pointer-events: none;
+        }
+
+        .chart-refresh-btn.success .refresh-icon {
+            color: var(--teal);
+        }
+
+        .chart-refresh-btn.error {
+            border-color: var(--red);
+            background: #fdedec;
+        }
+
+        .chart-refresh-btn.error .refresh-icon {
+            color: var(--red);
+        }
+
+        .refresh-icon {
+            display: block;
+            color: var(--ink-3);
+            transition: color 0.2s;
+        }
+
+        @keyframes spin {
+            from { transform: rotate(0deg); }
+            to { transform: rotate(360deg); }
+        }
+
+        .chart-refresh-toast {
+            position: fixed;
+            top: 16px;
+            left: 50%;
+            transform: translateX(-50%);
+            padding: 10px 20px;
+            border-radius: 8px;
+            font-size: 14px;
+            font-weight: 500;
+            color: #fff;
+            z-index: 9999;
+            pointer-events: none;
+            opacity: 0;
+            transition: opacity 0.3s ease;
+            box-shadow: 0 4px 16px rgba(0,0,0,0.15);
+        }
+
+        .chart-refresh-toast.show {
+            opacity: 1;
+        }
+
+        .chart-refresh-toast.success {
+            background: var(--teal);
+        }
+
+        .chart-refresh-toast.error {
+            background: var(--red);
+        }
+
+        @media screen and (max-width: 428px) {
+            .chart-refresh-btn {
+                width: 36px;
+                height: 36px;
+                min-width: 36px;
+                min-height: 36px;
+            }
+        }
+
+        /* ========== 持仓统计卡片 ========== */
+        .stats-card {
+            background: linear-gradient(135deg, var(--teal) 0%, var(--teal) 100%);
+            color: white;
+            padding: 16px;
+            border-radius: var(--radius-lg);
+            margin-bottom: 14px;
+        }
+
+        .stats-card .card-title {
+            margin-bottom: 12px;
+            font-size: var(--font-lg);
+        }
+
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 10px;
+        }
+
+        .stat-item {
+            text-align: center;
+        }
+
+        .stat-label {
+            display: block;
+            font-size: var(--font-sm);
+            opacity: 0.9;
+            margin-bottom: 4px;
+        }
+
+        .stat-value {
+            display: block;
+            font-size: 16px;
+            font-weight: bold;
+        }
+
+        .break-even-box {
+            margin-top: 12px;
+            padding: 10px;
+            background: rgba(255, 255, 255, 0.2);
+            border-radius: var(--radius);
+            text-align: center;
+            font-size: var(--font-base);
+        }
+
+        .form-card {
+            background: var(--surface);
+            padding: 16px;
+            border-radius: var(--radius-lg);
+            margin-bottom: 14px;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.05);
+        }
+
+        .card-title {
+            font-size: var(--font-lg);
+            color: var(--color-text);
+            margin-bottom: 12px;
+        }
+
+        .form-row {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 12px;
+            margin-bottom: 12px;
+        }
+
+        .preview-group {
+            display: flex;
+            flex-direction: column;
+            justify-content: flex-end;
+        }
+
+        .preview-value {
+            padding: 12px 0;
+            font-size: var(--font-base);
+            font-weight: 600;
+            color: var(--color-primary);
+        }
+
+        .sell-type-group {
+            display: flex;
+            gap: 0;
+            margin-bottom: 12px;
+            border-radius: var(--radius);
+            overflow: hidden;
+            border: 2px solid var(--line);
+            width: 100%;
+        }
+
+        .radio-label {
+            flex: 1;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 6px;
+            cursor: pointer;
+            color: var(--ink-3);
+            font-size: var(--font-base);
+            font-weight: 500;
+            min-height: var(--touch-min);
+            padding: 10px 16px;
+            background: var(--surface-2);
+            border-right: 1px solid var(--line);
+            transition: all 0.25s ease;
+            touch-action: manipulation;
+            -webkit-tap-highlight-color: transparent;
+            -webkit-user-select: none;
+            user-select: none;
+            position: relative;
+        }
+
+        .radio-label:last-child {
+            border-right: none;
+        }
+
+        .radio-label:active {
+            background: #e8f4fd;
+        }
+
+        .radio-label input[type="radio"] {
+            position: absolute;
+            opacity: 0;
+            width: 0;
+            height: 0;
+            pointer-events: none;
+        }
+
+        /* 选中状态 */
+        .radio-label:has(input:checked) {
+            background: linear-gradient(135deg, var(--accent) 0%, var(--accent-ink) 100%);
+            color: #fff;
+            font-weight: 600;
+            box-shadow: inset 0 1px 3px rgba(0,0,0,0.12);
+            z-index: 1;
+        }
+
+        /* 选中项的勾选图标 */
+        .radio-label:has(input:checked)::before {
+            content: '';
+            display: inline-block;
+            width: 16px;
+            height: 16px;
+            flex-shrink: 0;
+            background: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' viewBox='0 0 24 24' fill='none' stroke='white' stroke-width='3' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpolyline points='20 6 9 17 4 12'/%3E%3C/svg%3E") center/contain no-repeat;
+            animation: checkPop 0.25s ease;
+        }
+
+        @keyframes checkPop {
+            0% { transform: scale(0); opacity: 0; }
+            60% { transform: scale(1.3); }
+            100% { transform: scale(1); opacity: 1; }
+        }
+
+        @media (hover: hover) {
+            .radio-label:hover:not(:has(input:checked)) {
+                background: #eef2f7;
+                color: var(--ink);
+            }
+        }
+
+        .btn-sell {
+            background-color: var(--color-danger);
+        }
+
+        @media (hover: hover) {
+            .btn-sell:hover {
+                background-color: #c0392b;
+            }
+        }
+
+        .btn-sell:active {
+            background-color: #a93226;
+            transform: scale(0.98);
+        }
+
+        /* ========== 自动获取金价按钮 ========== */
+        .price-input-row {
+            display: flex;
+            gap: 8px;
+            align-items: flex-end;
+        }
+
+        .price-input-row .form-group {
+            flex: 1;
+            margin-bottom: 0;
+        }
+
+        .btn-auto-price {
+            padding: 10px 12px;
+            min-width: 44px;
+            min-height: var(--touch-min);
+            background: linear-gradient(135deg, #f39c12, #e67e22);
+            color: white;
+            border: none;
+            border-radius: var(--radius);
+            font-size: 13px;
+            font-weight: 600;
+            cursor: pointer;
+            white-space: nowrap;
+            flex-shrink: 0;
+            transition: all 0.2s;
+            touch-action: manipulation;
+            -webkit-appearance: none;
+            appearance: none;
+        }
+
+        .btn-auto-price:active {
+            transform: scale(0.95);
+            opacity: 0.8;
+        }
+
+        .btn-auto-price.loading {
+            opacity: 0.7;
+            pointer-events: none;
+        }
+
+        .btn-auto-price .price-hint {
+            font-size: 10px;
+            opacity: 0.85;
+            display: block;
+        }
+
+        /* ========== 记录卡片 ========== */
+        .record-card {
+            background: var(--surface);
+            padding: 16px;
+            border-radius: var(--radius-lg);
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.05);
+            margin-bottom: 14px;
+        }
+
+        .record-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 12px;
+        }
+
+        .record-header .card-title {
+            margin-bottom: 0;
+        }
+
+        .btn-clear {
+            padding: 8px 14px;
+            min-height: var(--touch-min);
+            background: var(--color-danger);
+            color: white;
+            border: none;
+            border-radius: 6px;
+            font-size: 13px;
+            cursor: pointer;
+            touch-action: manipulation;
+            -webkit-appearance: none;
+            appearance: none;
+        }
+
+        .btn-clear:active {
+            opacity: 0.8;
+        }
+
+        .table-container {
+            overflow-x: auto;
+            -webkit-overflow-scrolling: touch;
+            -ms-overflow-style: -ms-autohiding-scrollbar;
+        }
+
+        .table-scroll-hint {
+            display: none;
+            text-align: center;
+            font-size: 11px;
+            color: var(--line-strong);
+            padding: 4px 0;
+        }
+
+        .record-table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: var(--font-base);
+            min-width: 560px;
+        }
+
+        .record-table th,
+        .record-table td {
+            padding: 10px 6px;
+            text-align: center;
+            border-bottom: 1px solid var(--line);
+            white-space: nowrap;
+        }
+
+        .record-table th {
+            background: var(--surface-2);
+            color: var(--color-text-light);
+            font-weight: 500;
+            font-size: 13px;
+            position: sticky;
+            top: 0;
+        }
+
+        .record-table tbody tr:active {
+            background: #f0f4f8;
+        }
+
+        .record-table tfoot td {
+            font-weight: bold;
+            background: var(--surface-2);
+        }
+
+        .btn-delete {
+            padding: 6px 12px;
+            min-height: 32px;
+            background: var(--color-danger);
+            color: white;
+            border: none;
+            border-radius: 4px;
+            font-size: 13px;
+            cursor: pointer;
+            touch-action: manipulation;
+            -webkit-appearance: none;
+            appearance: none;
+        }
+
+        .btn-delete:active {
+            opacity: 0.8;
+        }
+
+        .empty-tip {
+            text-align: center;
+            color: #999;
+            padding: 30px 0;
+            display: none;
+            font-size: var(--font-base);
+        }
+
+        .profit-text {
+            color: var(--red);
+        }
+
+        .loss-text {
+            color: var(--teal);
+        }
+
+        /* ========== 卖出收益记录样式 ========== */
+        .profit-summary-card {
+            background: linear-gradient(135deg, var(--accent) 0%, var(--accent-ink) 100%);
+            color: white;
+            padding: 16px;
+            border-radius: var(--radius-lg);
+            margin-bottom: 14px;
+        }
+
+        .profit-summary-card .card-title {
+            margin-bottom: 12px;
+            font-size: var(--font-lg);
+        }
+
+        .profit-summary-grid {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 10px;
+        }
+
+        .profit-summary-item {
+            text-align: center;
+        }
+
+        .profit-summary-label {
+            display: block;
+            font-size: var(--font-sm);
+            opacity: 0.9;
+            margin-bottom: 4px;
+        }
+
+        .profit-summary-value {
+            display: block;
+            font-size: 16px;
+            font-weight: bold;
+        }
+
+        .profit-summary-value.profit {
+            color: var(--teal);
+        }
+
+        .profit-summary-value.loss {
+            color: var(--red);
+        }
+
+        /* ========== 筛选区域 ========== */
+        .filter-bar {
+            display: flex;
+            gap: 8px;
+            align-items: flex-start;
+            flex-wrap: wrap;
+            padding: 10px 0;
+            border-bottom: 1px solid var(--line);
+            margin-bottom: 12px;
+        }
+
+        .filter-group {
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+            align-items: flex-start;
+            flex: 1;
+        }
+
+        .filter-row {
+            display: flex;
+            gap: 5px;
+            align-items: center;
+            flex-wrap: wrap;
+        }
+
+        .filter-date-row {
+            width: 100%;
+        }
+
+        .filter-btn {
+            padding: 7px 11px;
+            min-height: 34px;
+            border: 1px solid var(--color-border);
+            border-radius: 6px;
+            background: var(--surface);
+            font-size: 13px;
+            cursor: pointer;
+            transition: all 0.2s;
+            touch-action: manipulation;
+            -webkit-appearance: none;
+            appearance: none;
+        }
+
+        .filter-btn:active {
+            border-color: var(--color-blue);
+            color: var(--color-blue);
+        }
+
+        .filter-btn.active {
+            background: var(--color-blue);
+            color: white;
+            border-color: var(--color-blue);
+        }
+
+        .date-input {
+            padding: 7px 8px;
+            border: 1px solid var(--color-border);
+            border-radius: 6px;
+            font-size: 13px;
+            min-width: 130px;
+            width: 130px;
+            min-height: 34px;
+            -webkit-appearance: none;
+            appearance: none;
+            text-overflow: ellipsis;
+            flex: 1 1 auto;
+            max-width: 180px;
+        }
+
+        .date-input:focus {
+            border-color: var(--color-blue);
+            outline: none;
+        }
+
+        .sort-group {
+            display: flex;
+            gap: 5px;
+            align-items: center;
+            margin-left: auto;
+        }
+
+        .sort-select {
+            padding: 7px 8px;
+            border: 1px solid var(--color-border);
+            border-radius: 6px;
+            font-size: 13px;
+            background: var(--surface);
+            cursor: pointer;
+            min-height: 34px;
+            -webkit-appearance: none;
+            appearance: none;
+            background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='10' height='6'%3E%3Cpath d='M0 0l5 6 5-6z' fill='%237f8c8d'/%3E%3C/svg%3E");
+            background-repeat: no-repeat;
+            background-position: right 8px center;
+            padding-right: 24px;
+        }
+
+        .filter-label {
+            font-size: 13px;
+            color: var(--color-text-light);
+            white-space: nowrap;
+        }
+
+        .profit-amount {
+            color: var(--red);
+            font-weight: bold;
+        }
+
+        .loss-amount {
+            color: var(--teal);
+            font-weight: bold;
+        }
+
+        .profit-rate {
+            background: var(--red);
+            color: white;
+            padding: 2px 8px;
+            border-radius: 4px;
+            font-size: 12px;
+        }
+
+        .loss-rate {
+            background: var(--teal);
+            color: white;
+            padding: 2px 8px;
+            border-radius: 4px;
+            font-size: 12px;
+        }
+
+        .pagination {
+            display: flex;
+            justify-content: center;
+            gap: 6px;
+            margin-top: 16px;
+            align-items: center;
+            flex-wrap: wrap;
+        }
+
+        .page-btn {
+            padding: 10px 14px;
+            min-height: var(--touch-min);
+            min-width: var(--touch-min);
+            border: 1px solid var(--color-border);
+            border-radius: 6px;
+            background: var(--surface);
+            font-size: 14px;
+            cursor: pointer;
+            transition: all 0.2s;
+            touch-action: manipulation;
+            -webkit-appearance: none;
+            appearance: none;
+        }
+
+        .page-btn:active:not(.disabled) {
+            border-color: var(--color-blue);
+            color: var(--color-blue);
+        }
+
+        .page-btn.active {
+            background: var(--color-blue);
+            color: white;
+            border-color: var(--color-blue);
+        }
+
+        .page-btn.disabled {
+            color: var(--line-strong);
+            pointer-events: none;
+            opacity: 0.5;
+        }
+
+        .page-info {
+            color: var(--color-text-light);
+            font-size: 13px;
+            padding: 8px;
+        }
+
+        /* ========== 移动端响应式 (320px - 428px) ========== */
+        @media screen and (max-width: 428px) {
+            body {
+                padding: 8px;
+                font-size: 14px;
+            }
+
+            .calculator-box {
+                padding: 12px;
+                border-radius: 10px;
+            }
+
+            .title {
+                font-size: 18px;
+                margin-bottom: 16px;
+            }
+
+            .stats-grid {
+                grid-template-columns: 1fr;
+                gap: 8px;
+            }
+
+            .form-row {
+                grid-template-columns: 1fr;
+                gap: 8px;
+                margin-bottom: 8px;
+            }
+
+            .profit-summary-grid {
+                grid-template-columns: repeat(2, 1fr);
+                gap: 8px;
+            }
+
+            .gold-price-info {
+                grid-template-columns: repeat(2, 1fr);
+                gap: 6px;
+            }
+
+            .gold-price-current {
+                font-size: 32px;
+            }
+
+            .gold-price-card {
+                padding: 14px;
+            }
+
+            .filter-bar {
+                flex-direction: column;
+                align-items: stretch;
+                gap: 6px;
+            }
+
+            .sort-group {
+                margin-left: 0;
+                justify-content: flex-end;
+            }
+
+            .chart-container {
+                height: 180px;
+            }
+
+            .record-table {
+                font-size: 13px;
+            }
+
+            .form-card,
+            .record-card,
+            .stats-card,
+            .profit-summary-card,
+            .chart-card {
+                padding: 12px;
+                margin-bottom: 10px;
+            }
+
+            .btn-calc {
+                padding: 12px;
+                font-size: 15px;
+            }
+
+            .page-btn {
+                padding: 8px 10px;
+                font-size: 13px;
+            }
+
+            .table-scroll-hint {
+                display: block;
+            }
+
+            .price-input-row {
+                flex-direction: column;
+                align-items: stretch;
+            }
+
+            .btn-auto-price {
+                font-size: 13px;
+                padding: 10px 12px;
+                white-space: normal;
+                min-width: 0;
+            }
+
+            .btn-auto-price .price-hint {
+                display: inline;
+                margin-left: 4px;
+            }
+
+            .btn-auto-price .price-hint::before {
+                content: '(';
+            }
+
+            .btn-auto-price .price-hint::after {
+                content: ')';
+            }
+
+            .filter-bar {
+                gap: 6px;
+                padding: 8px 0;
+            }
+
+            .filter-group {
+                gap: 8px;
+                flex-direction: column;
+            }
+
+            .filter-row {
+                gap: 4px;
+                flex-wrap: wrap;
+            }
+
+            .filter-date-row {
+                width: 100%;
+            }
+
+            .date-input {
+                min-width: 110px;
+                flex: 1 1 40%;
+                font-size: 14px;
+                min-height: 44px;
+                padding: 10px 10px;
+                width: auto;
+            }
+
+            .filter-btn {
+                font-size: 12px;
+                padding: 6px 9px;
+            }
+        }
+
+        @media screen and (max-width: 360px) {
+            .gold-price-info {
+                grid-template-columns: repeat(2, 1fr);
+                gap: 4px;
+            }
+
+            .gold-price-info-item {
+                padding: 6px 4px;
+            }
+
+            .gold-price-info-value {
+                font-size: 13px;
+            }
+
+            .gold-price-current {
+                font-size: 28px;
+            }
+
+            .chart-container {
+                height: 160px;
+            }
+
+            .btn-auto-price {
+                font-size: 12px;
+                padding: 10px 10px;
+                white-space: normal;
+            }
+
+            .btn-auto-price .price-hint {
+                display: inline;
+                margin-left: 4px;
+            }
+
+            .btn-auto-price .price-hint::before {
+                content: '(';
+            }
+
+            .btn-auto-price .price-hint::after {
+                content: ')';
+            }
+
+            .date-input {
+                min-width: 100px;
+                width: auto;
+                flex: 1 1 40%;
+                font-size: 14px;
+                min-height: 44px;
+            }
+
+            .filter-row {
+                gap: 4px;
+            }
+
+            .filter-date-row {
+                width: 100%;
+            }
+
+            .filter-bar {
+                gap: 4px;
+            }
+
+            .filter-group {
+                gap: 4px;
+            }
+        }
+    
+        /* ===== 深色金价卡对比度修正 ===== */
+        .gold-price-header .card-title { color: #fff; }
+        .gold-price-status { color: #8fe3bd; }
+        .gold-price-status.error { color: #ff9d97; }
+        .gold-price-info-label { color: rgba(255, 255, 255, .72); }
+</style>
+</head>
+<body>
+<script src="/assets/site.js" data-app="gold"></script>
+
+<section class="page-head">
+  <div class="shell">
+    <nav class="crumbs" aria-label="面包屑"><a href="/">首页</a><span>/</span>积存金</nav>
+    <p class="kicker"><span class="tick"></span>Gold</p>
+    <h1>积存金持仓管理</h1>
+    <p class="lede">记录每笔积存与赎回，按实时金价估算持仓市值与浮动盈亏；数据只存在本机浏览器，可随时导出与恢复。</p>
+    <div class="meta-row">
+      <span class="meta-pill"><i></i>实时金价</span>
+      <span class="meta-pill"><i></i>成本 / 市值 / 盈亏</span>
+      <span class="meta-pill"><i></i>本地存储 · 不上传</span>
+    </div>
+  </div>
+</section>
+
+<main class="app-main gold-main">
+    <div class="banner-note" id="bannerNote"></div>
+    <div class="chart-refresh-toast" id="chartRefreshToast"></div>
+    <div class="calculator-box">
+        
+
+        <!-- ========== 实时金价卡片 ========== -->
+        <div class="gold-price-card" id="goldPriceCard">
+            <div class="gold-price-header">
+                <span class="card-title">实时金价</span>
+                <span class="gold-price-status" id="goldPriceStatus">加载中...</span>
+            </div>
+            <div class="gold-price-main">
+                <span class="gold-price-current" id="goldPriceCurrent">--</span>
+                <span class="gold-price-unit">元/克</span>
+                <span class="gold-price-change" id="goldPriceChange" style="display:none;"></span>
+            </div>
+            <div class="gold-price-info">
+                <div class="gold-price-info-item">
+                    <div class="gold-price-info-label">卖出价</div>
+                    <div class="gold-price-info-value" id="goldPriceSell">--</div>
+                </div>
+                <div class="gold-price-info-item">
+                    <div class="gold-price-info-label">今日最高</div>
+                    <div class="gold-price-info-value high" id="goldPriceHigh">--</div>
+                </div>
+                <div class="gold-price-info-item">
+                    <div class="gold-price-info-label">今日最低</div>
+                    <div class="gold-price-info-value low" id="goldPriceLow">--</div>
+                </div>
+                <div class="gold-price-info-item">
+                    <div class="gold-price-info-label">开盘价</div>
+                    <div class="gold-price-info-value" id="goldPriceOpen">--</div>
+                </div>
+            </div>
+            <div class="gold-price-update" id="goldPriceUpdate">--</div>
+        </div>
+
+        <!-- ========== 金价走势图表（双维度同屏展示） ========== -->
+        <div class="chart-card" id="chartCard">
+            <h3 class="card-title">金价走势</h3>
+            <!-- 当日小时走势 -->
+            <div class="chart-section">
+                <div class="chart-section-title">
+                    <span class="chart-section-dot gold"></span> 当日小时走势
+                    <button class="chart-refresh-btn" id="hourlyRefreshBtn" onclick="refreshHourlyChart()" title="刷新金价数据" aria-label="刷新金价数据">
+                        <svg class="refresh-icon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+                            <polyline points="23 4 23 10 17 10"></polyline>
+                            <path d="M20.49 15a9 9 0 1 1-2.12-9.36L23 10"></path>
+                        </svg>
+                    </button>
+                </div>
+                <div class="chart-container" id="hourlyChartContainer">
+                    <canvas id="hourlyChart"></canvas>
+                </div>
+            </div>
+            <hr class="chart-divider">
+            <!-- 近7日走势 -->
+            <div class="chart-section">
+                <div class="chart-section-title">
+                    <span class="chart-section-dot blue"></span> 近7日走势
+                </div>
+                <div class="chart-container" id="dailyChartContainer">
+                    <canvas id="dailyChart"></canvas>
+                </div>
+            </div>
+            <div class="chart-swipe-hint">
+                <span>点击数据点查看详情</span>
+            </div>
+        </div>
+
+        <!-- ========== 持仓统计卡片 ========== -->
+        <div class="stats-card" id="statsCard">
+            <h3 class="card-title">持仓统计</h3>
+            <div class="stats-grid">
+                <div class="stat-item">
+                    <span class="stat-label">总持仓克数</span>
+                    <span class="stat-value" id="statTotalWeight">0.00 克</span>
+                </div>
+                <div class="stat-item">
+                    <span class="stat-label">总投入金额</span>
+                    <span class="stat-value" id="statTotalInvestment">0.00 元</span>
+                </div>
+                <div class="stat-item">
+                    <span class="stat-label">加权平均成本</span>
+                    <span class="stat-value" id="statAvgCost">0.00 元/克</span>
+                </div>
+            </div>
+            <div class="break-even-box" id="breakEvenBox">
+                保本卖出价：<span id="breakEvenPrice">0.00</span> 元/克
+            </div>
+        </div>
+
+        <!-- ========== 新增买入表单 ========== -->
+        <div class="form-card">
+            <h3 class="card-title">新增买入</h3>
+            <div class="form-row">
+                <div class="form-group">
+                    <label>买入价格（元/克）</label>
+                    <input type="number" id="buyPriceInput" placeholder="请输入买入单价" step="0.01" inputmode="decimal">
+                </div>
+                <div class="form-group">
+                    <label>买入克数（克）</label>
+                    <input type="number" id="buyWeightInput" placeholder="请输入买入克数" step="1" inputmode="decimal">
+                </div>
+            </div>
+            <div class="form-row">
+                <div class="form-group">
+                    <label>买入手续费率（%）</label>
+                    <input type="number" id="buyFeeRateInput" placeholder="默认0.0%" value="0.0" step="0.1" inputmode="decimal">
+                </div>
+                <div class="form-group preview-group">
+                    <label>预计买入金额</label>
+                    <div class="preview-value" id="previewBuyAmount">0.00 元</div>
+                </div>
+            </div>
+            <div class="form-row">
+                <div class="form-group preview-group">
+                    <label>预计手续费</label>
+                    <div class="preview-value" id="previewBuyFee">0.00 元</div>
+                </div>
+                <div class="form-group">
+                    <button class="btn-calc" onclick="handleAddBuy()">确认买入</button>
+                </div>
+            </div>
+        </div>
+
+        <!-- ========== 卖出操作表单 ========== -->
+        <div class="form-card">
+            <h3 class="card-title">卖出操作</h3>
+            <div class="sell-type-group">
+                <label class="radio-label">
+                    <input type="radio" name="sellType" value="weight" checked> 按克数
+                </label>
+                <label class="radio-label">
+                    <input type="radio" name="sellType" value="amount"> 按金额
+                </label>
+            </div>
+            <div class="form-row">
+                <div class="form-group">
+                    <label>卖出价格（元/克）</label>
+                    <div class="price-input-row">
+                        <input type="number" id="sellPriceInput" placeholder="请输入卖出单价" step="0.01" inputmode="decimal">
+                        <button class="btn-auto-price" id="btnAutoPrice" onclick="fetchGoldPriceForSell()" title="自动获取实时金价">
+                            获取实时价
+                            <span class="price-hint" id="autoPriceHint"></span>
+                        </button>
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label id="sellQuantityLabel">卖出克数（克）</label>
+                    <input type="number" id="sellQuantityInput" placeholder="请输入卖出数量" step="1" inputmode="decimal">
+                </div>
+            </div>
+            <div class="form-row">
+                <div class="form-group">
+                    <label>卖出手续费率（%）</label>
+                    <input type="number" id="sellFeeRateInput" placeholder="默认0.4%" value="0.4" step="0.1" inputmode="decimal">
+                </div>
+                <div class="form-group preview-group">
+                    <label>预计卖出金额</label>
+                    <div class="preview-value" id="previewSellAmount">0.00 元</div>
+                </div>
+            </div>
+            <div class="form-row">
+                <div class="form-group preview-group">
+                    <label>预计手续费</label>
+                    <div class="preview-value" id="previewSellFee">0.00 元</div>
+                </div>
+                <div class="form-group preview-group">
+                    <label>预计净收益</label>
+                    <div class="preview-value" id="previewNetProfit">0.00 元</div>
+                </div>
+            </div>
+            <div class="form-row">
+                <div class="form-group">
+                    <button class="btn-calc btn-sell" onclick="handleSell()">确认卖出</button>
+                </div>
+            </div>
+        </div>
+
+        <!-- ========== 买入记录列表 ========== -->
+        <div class="record-card">
+            <div class="record-header">
+                <h3 class="card-title">买入记录</h3>
+                <button class="btn-clear" onclick="handleClearAll()">清空全部</button>
+            </div>
+            <div class="table-container">
+                <table class="record-table" id="buyRecordsTable">
+                    <thead>
+                        <tr>
+                            <th>时间</th>
+                            <th>单价</th>
+                            <th>克数</th>
+                            <th>金额</th>
+                            <th>手续费</th>
+                            <th>剩余</th>
+                            <th>操作</th>
+                        </tr>
+                    </thead>
+                    <tbody id="buyRecordsBody"></tbody>
+                    <tfoot id="buyRecordsFoot"></tfoot>
+                </table>
+            </div>
+            <div class="table-scroll-hint">← 左右滑动查看完整表格 →</div>
+            <div class="empty-tip" id="emptyTip">暂无买入记录</div>
+        </div>
+
+        <!-- ========== 卖出收益汇总 ========== -->
+        <div class="profit-summary-card" id="profitSummaryCard">
+            <h3 class="card-title">卖出收益汇总</h3>
+            <div class="profit-summary-grid">
+                <div class="profit-summary-item">
+                    <span class="profit-summary-label">累计卖出次数</span>
+                    <span class="profit-summary-value" id="profitSummaryCount">0 次</span>
+                </div>
+                <div class="profit-summary-item">
+                    <span class="profit-summary-label">累计卖出金额</span>
+                    <span class="profit-summary-value" id="profitSummaryAmount">0.00 元</span>
+                </div>
+                <div class="profit-summary-item">
+                    <span class="profit-summary-label">累计总收益</span>
+                    <span class="profit-summary-value" id="profitSummaryProfit">0.00 元</span>
+                </div>
+                <div class="profit-summary-item">
+                    <span class="profit-summary-label">平均收益率</span>
+                    <span class="profit-summary-value" id="profitSummaryRate">0.00%</span>
+                </div>
+            </div>
+        </div>
+
+        <!-- ========== 收益明细（含筛选） ========== -->
+        <div class="record-card">
+            <div class="record-header">
+                <h3 class="card-title">收益明细</h3>
+            </div>
+            <div class="filter-bar">
+                <div class="filter-group">
+                    <div class="filter-row">
+                        <span class="filter-label">时间：</span>
+                        <button class="filter-btn active" data-filter="all">全部</button>
+                        <button class="filter-btn" data-filter="today">今日</button>
+                        <button class="filter-btn" data-filter="week">本周</button>
+                        <button class="filter-btn" data-filter="month">本月</button>
+                    </div>
+                    <div class="filter-row filter-date-row">
+                        <input type="date" class="date-input" id="startDateInput">
+                        <span class="filter-label">至</span>
+                        <input type="date" class="date-input" id="endDateInput">
+                        <button class="filter-btn" id="customFilterBtn">筛选</button>
+                    </div>
+                </div>
+                <div class="sort-group">
+                    <span class="filter-label">排序：</span>
+                    <select class="sort-select" id="sortSelect">
+                        <option value="time-desc">时间 ↓</option>
+                        <option value="time-asc">时间 ↑</option>
+                        <option value="profit-desc">收益 ↓</option>
+                        <option value="profit-asc">收益 ↑</option>
+                        <option value="rate-desc">收益率 ↓</option>
+                        <option value="rate-asc">收益率 ↑</option>
+                    </select>
+                </div>
+            </div>
+            <div class="table-container" id="profitTableContainer">
+                <table class="record-table">
+                    <thead>
+                        <tr>
+                            <th>卖出时间</th>
+                            <th>卖出价格</th>
+                            <th>成本价格</th>
+                            <th>卖出克数</th>
+                            <th>卖出金额</th>
+                            <th>手续费</th>
+                            <th>收益金额</th>
+                            <th>收益率</th>
+                        </tr>
+                    </thead>
+                    <tbody id="profitRecordsBody"></tbody>
+                    <tfoot id="profitRecordsFoot"></tfoot>
+                </table>
+            </div>
+            <div class="empty-tip" id="profitEmptyTip">暂无卖出记录</div>
+            <div class="pagination" id="profitPagination"></div>
+        </div>
+    </div>
+
+    <script>
+        // ==================== 数据存储模块 ====================
+        const STORAGE_KEY = 'goldTradeData';
+        const GOLD_PRICE_HISTORY_KEY = 'goldPriceHistory';
+        const GOLD_PRICE_DAILY_KEY = 'goldPriceDaily';
+        const GOLD_PRICE_LAST_WEEKLY_UPDATE = 'goldPriceLastWeeklyUpdate';
+        const DATA_VERSION = 1;
+
+        function isLocalStorageAvailable() {
+            try {
+                const testKey = '__test__';
+                localStorage.setItem(testKey, testKey);
+                localStorage.removeItem(testKey);
+                return true;
+            } catch (e) {
+                return false;
+            }
+        }
+
+        function getDefaultData() {
+            return { version: DATA_VERSION, buyRecords: [], sellRecords: [] };
+        }
+
+        function getData() {
+            if (!isLocalStorageAvailable()) { return getDefaultData(); }
+            try {
+                const data = localStorage.getItem(STORAGE_KEY);
+                if (data) {
+                    const parsed = JSON.parse(data);
+                    if (parsed.version !== DATA_VERSION) { return getDefaultData(); }
+                    if (!parsed.buyRecords) parsed.buyRecords = [];
+                    if (!parsed.sellRecords) parsed.sellRecords = [];
+                    return parsed;
+                }
+            } catch (e) {
+                localStorage.removeItem(STORAGE_KEY);
+            }
+            return getDefaultData();
+        }
+
+        function saveData(data) {
+            if (!isLocalStorageAvailable()) { return false; }
+            try {
+                data.version = DATA_VERSION;
+                localStorage.setItem(STORAGE_KEY, JSON.stringify(data));
+                return true;
+            } catch (e) {
+                if (e.name === 'QuotaExceededError') {
+                    alert('存储空间不足！请清理部分历史记录后重试。');
+                }
+                return false;
+            }
+        }
+
+        function generateId() {
+            return Date.now().toString(36) + Math.random().toString(36).substr(2);
+        }
+
+        function formatTime(date) {
+            const d = new Date(date);
+            const pad = (n) => String(n).padStart(2, '0');
+            return `${d.getFullYear()}-${pad(d.getMonth()+1)}-${pad(d.getDate())} ${pad(d.getHours())}:${pad(d.getMinutes())}`;
+        }
+
+        function formatTimeShort(date) {
+            const d = new Date(date);
+            return String(d.getHours()).padStart(2, '0') + ':' + String(d.getMinutes()).padStart(2, '0');
+        }
+
+        function formatDate(date) {
+            const d = new Date(date);
+            const pad = (n) => String(n).padStart(2, '0');
+            return `${d.getFullYear()}-${pad(d.getMonth()+1)}-${pad(d.getDate())}`;
+        }
+
+        function formatDateShort(date) {
+            const d = new Date(date);
+            return String(d.getMonth() + 1).padStart(2, '0') + '/' + String(d.getDate()).padStart(2, '0');
+        }
+
+        function addBuyRecord(price, weight, feeRate) {
+            const data = getData();
+            const amount = price * weight;
+            const fee = amount * feeRate / 100;
+            data.buyRecords.push({
+                id: generateId(),
+                timestamp: new Date().toISOString(),
+                price: parseFloat(price),
+                weight: parseFloat(weight),
+                amount: amount,
+                feeRate: parseFloat(feeRate),
+                fee: fee,
+                remainingWeight: parseFloat(weight)
+            });
+            saveData(data);
+            return data.buyRecords[data.buyRecords.length - 1];
+        }
+
+        function deleteBuyRecord(id) {
+            const data = getData();
+            data.buyRecords = data.buyRecords.filter(r => r.id !== id);
+            saveData(data);
+        }
+
+        function clearAllBuyRecords() {
+            const data = getData();
+            data.buyRecords = [];
+            data.sellRecords = [];
+            saveData(data);
+        }
+
+        function addSellRecord(price, weight, feeRate) {
+            const data = getData();
+            const amount = price * weight;
+            const fee = amount * feeRate / 100;
+            const statsBeforeSell = getPortfolioStats();
+            const avgCostPrice = statsBeforeSell.avgCost;
+            let remainingSell = parseFloat(weight);
+            for (let record of data.buyRecords) {
+                if (remainingSell <= 0) break;
+                if (record.remainingWeight > 0) {
+                    const deduct = Math.min(remainingSell, record.remainingWeight);
+                    record.remainingWeight -= deduct;
+                    remainingSell -= deduct;
+                }
+            }
+            data.sellRecords.push({
+                id: generateId(),
+                timestamp: new Date().toISOString(),
+                price: parseFloat(price),
+                weight: parseFloat(weight),
+                amount: amount,
+                feeRate: parseFloat(feeRate),
+                fee: fee,
+                costPrice: avgCostPrice
+            });
+            saveData(data);
+            return data.sellRecords[data.sellRecords.length - 1];
+        }
+
+        function getPortfolioStats() {
+            const data = getData();
+            let totalWeight = 0, totalAmount = 0, totalFee = 0;
+            data.buyRecords.forEach(record => {
+                if (record.remainingWeight > 0) {
+                    totalWeight += record.remainingWeight;
+                    const ratio = record.remainingWeight / record.weight;
+                    totalAmount += record.amount * ratio;
+                    totalFee += record.fee * ratio;
+                }
+            });
+            const totalInvestment = totalAmount + totalFee;
+            const avgCost = totalWeight > 0 ? totalInvestment / totalWeight : 0;
+            return { totalWeight, totalAmount, totalFee, totalInvestment, avgCost };
+        }
+
+        function calculateBreakEvenPrice(avgCost, sellFeeRate) {
+            if (avgCost <= 0) return 0;
+            return avgCost / (1 - sellFeeRate / 100);
+        }
+
+        // ==================== 实时金价模块 ====================
+        const GOLD_API_URL = '/api/gold';
+        let currentGoldData = null;
+        let hourlyChart = null;
+        let serverIntraday = [];
+        let dailyChart = null;
+
+        function getGoldPriceHistory() {
+            if (!isLocalStorageAvailable()) return [];
+            try {
+                const data = localStorage.getItem(GOLD_PRICE_HISTORY_KEY);
+                return data ? JSON.parse(data) : [];
+            } catch (e) { return []; }
+        }
+
+        function saveGoldPriceHistory(history) {
+            if (!isLocalStorageAvailable()) return;
+            try {
+                const sevenDaysAgo = Date.now() - 7 * 24 * 60 * 60 * 1000;
+                const filtered = history.filter(h => h.timestamp > sevenDaysAgo);
+                localStorage.setItem(GOLD_PRICE_HISTORY_KEY, JSON.stringify(filtered));
+            } catch (e) {}
+        }
+
+        function getGoldPriceDaily() {
+            if (!isLocalStorageAvailable()) return [];
+            try {
+                const data = localStorage.getItem(GOLD_PRICE_DAILY_KEY);
+                return data ? JSON.parse(data) : [];
+            } catch (e) { return []; }
+        }
+
+        function saveGoldPriceDaily(daily) {
+            if (!isLocalStorageAvailable()) return;
+            try {
+                const cutoff = daily.length > 90 ? daily.slice(-90) : daily;
+                localStorage.setItem(GOLD_PRICE_DAILY_KEY, JSON.stringify(cutoff));
+            } catch (e) {}
+        }
+
+        // 每周更新检查
+        function checkWeeklyUpdate() {
+            const lastUpdate = localStorage.getItem(GOLD_PRICE_LAST_WEEKLY_UPDATE);
+            const now = Date.now();
+            const weekInMs = 7 * 24 * 60 * 60 * 1000;
+            if (!lastUpdate || (now - parseInt(lastUpdate)) > weekInMs) {
+                localStorage.setItem(GOLD_PRICE_LAST_WEEKLY_UPDATE, String(now));
+                // 清理超过7天的逐时数据，保留每日汇总
+                pruneOldData();
+                return true;
+            }
+            return false;
+        }
+
+        function pruneOldData() {
+            const history = getGoldPriceHistory();
+            const sevenDaysAgo = Date.now() - 7 * 24 * 60 * 60 * 1000;
+            const filtered = history.filter(h => h.timestamp > sevenDaysAgo);
+            saveGoldPriceHistory(filtered);
+        }
+
+        async function fetchGoldPrice() {
+            const statusEl = document.getElementById('goldPriceStatus');
+            if (!statusEl) return;
+            statusEl.textContent = '更新中...';
+            statusEl.className = 'gold-price-status';
+
+            try {
+                const response = await fetch(GOLD_API_URL);
+                if (!response.ok) throw new Error('API请求失败');
+                const data = await response.json();
+                if (Array.isArray(data.intraday) && data.intraday.length > serverIntraday.length) serverIntraday = data.intraday;
+                const goldMetal = data.metals && data.metals.length > 0 ? data.metals[0] : null;
+                if (!goldMetal) throw new Error('未获取到金价数据');
+
+                currentGoldData = {
+                    sellPrice: parseFloat(goldMetal.sell_price),
+                    todayPrice: parseFloat(goldMetal.today_price),
+                    highPrice: parseFloat(goldMetal.high_price),
+                    lowPrice: parseFloat(goldMetal.low_price),
+                    updated: goldMetal.updated,
+                    timestamp: Date.now()
+                };
+
+                updateGoldPriceUI();
+                recordPriceSnapshot();
+                updateCharts();
+
+                statusEl.textContent = '实时';
+                statusEl.className = 'gold-price-status';
+            } catch (e) {
+                console.error('获取金价失败:', e);
+                statusEl.textContent = '获取失败';
+                statusEl.className = 'gold-price-status error';
+                if (currentGoldData) { updateGoldPriceUI(); }
+            }
+        }
+
+        function safeText(id, text) {
+            const el = document.getElementById(id);
+            if (el) el.textContent = text;
+            return el;
+        }
+
+        function updateGoldPriceUI() {
+            if (!currentGoldData) return;
+
+            const priceEl = document.getElementById('goldPriceCurrent');
+            if (!priceEl) return;
+
+            const prevPrice = priceEl.dataset.price;
+            const currentPrice = currentGoldData.todayPrice;
+
+            priceEl.textContent = currentPrice.toFixed(2);
+            priceEl.dataset.price = currentPrice;
+            safeText('goldPriceSell', currentGoldData.sellPrice.toFixed(2));
+            safeText('goldPriceHigh', currentGoldData.highPrice.toFixed(2));
+            safeText('goldPriceLow', currentGoldData.lowPrice.toFixed(2));
+            safeText('goldPriceOpen', currentGoldData.todayPrice.toFixed(2));
+            safeText('goldPriceUpdate', '更新于 ' + (currentGoldData.updated || formatTime(new Date())));
+
+            const changeEl = document.getElementById('goldPriceChange');
+            if (changeEl && prevPrice && parseFloat(prevPrice) > 0) {
+                const diff = currentPrice - parseFloat(prevPrice);
+                if (Math.abs(diff) > 0.01) {
+                    changeEl.style.display = 'inline';
+                    changeEl.textContent = (diff >= 0 ? '+' : '') + diff.toFixed(2);
+                    changeEl.className = 'gold-price-change ' + (diff >= 0 ? 'up' : 'down');
+                } else {
+                    changeEl.style.display = 'none';
+                }
+            }
+            safeText('autoPriceHint', currentGoldData.sellPrice.toFixed(2));
+        }
+
+        function recordPriceSnapshot() {
+            if (!currentGoldData) return;
+            const history = getGoldPriceHistory();
+            const today = formatDate(new Date());
+            const lastRecord = history.length > 0 ? history[history.length - 1] : null;
+            const shouldRecord = !lastRecord || (Date.now() - lastRecord.timestamp > 55 * 60 * 1000);
+
+            if (shouldRecord) {
+                history.push({
+                    timestamp: currentGoldData.timestamp,
+                    price: currentGoldData.todayPrice,
+                    high: currentGoldData.highPrice,
+                    low: currentGoldData.lowPrice,
+                    sell: currentGoldData.sellPrice
+                });
+                saveGoldPriceHistory(history);
+                updateDailyRecord(today);
+            }
+        }
+
+        function updateDailyRecord(today) {
+            if (!currentGoldData) return;
+            const daily = getGoldPriceDaily();
+            const todayRecord = daily.find(d => d.date === today);
+            if (todayRecord) {
+                todayRecord.high = Math.max(todayRecord.high, currentGoldData.highPrice);
+                todayRecord.low = Math.min(todayRecord.low, currentGoldData.lowPrice);
+                todayRecord.close = currentGoldData.todayPrice;
+            } else {
+                daily.push({
+                    date: today,
+                    high: currentGoldData.highPrice,
+                    low: currentGoldData.lowPrice,
+                    close: currentGoldData.todayPrice,
+                    open: currentGoldData.todayPrice
+                });
+            }
+            saveGoldPriceDaily(daily);
+        }
+
+        async function fetchGoldPriceForSell() {
+            const btn = document.getElementById('btnAutoPrice');
+            if (!btn) return;
+            btn.classList.add('loading');
+            btn.textContent = '获取中...';
+
+            try {
+                const response = await fetch(GOLD_API_URL);
+                if (!response.ok) throw new Error('API请求失败');
+                const data = await response.json();
+                if (Array.isArray(data.intraday) && data.intraday.length > serverIntraday.length) serverIntraday = data.intraday;
+                const goldMetal = data.metals && data.metals.length > 0 ? data.metals[0] : null;
+
+                if (goldMetal) {
+                    const sellPrice = parseFloat(goldMetal.sell_price);
+                    document.getElementById('sellPriceInput').value = sellPrice.toFixed(2);
+                    updateSellPreview();
+                    currentGoldData = {
+                        sellPrice: sellPrice,
+                        todayPrice: parseFloat(goldMetal.today_price),
+                        highPrice: parseFloat(goldMetal.high_price),
+                        lowPrice: parseFloat(goldMetal.low_price),
+                        updated: goldMetal.updated,
+                        timestamp: Date.now()
+                    };
+                    updateGoldPriceUI();
+                    recordPriceSnapshot();
+                    updateCharts();
+                }
+            } catch (e) {
+                if (currentGoldData) {
+                    document.getElementById('sellPriceInput').value = currentGoldData.sellPrice.toFixed(2);
+                    updateSellPreview();
+                } else {
+                    alert('获取实时金价失败，请手动输入');
+                }
+            } finally {
+                btn.classList.remove('loading');
+                btn.innerHTML = '获取实时价<span class="price-hint">' +
+                    (currentGoldData ? currentGoldData.sellPrice.toFixed(2) : '--') + '</span>';
+            }
+        }
+
+        // ==================== 双图表模块 ====================
+        function createChartConfig(label, borderColor, bgColor, pointColor) {
+            return {
+                type: 'line',
+                data: {
+                    labels: [],
+                    datasets: [{
+                        label: label,
+                        data: [],
+                        borderColor: borderColor,
+                        backgroundColor: bgColor,
+                        borderWidth: 2,
+                        fill: true,
+                        tension: 0.4,
+                        pointRadius: 3,
+                        pointHoverRadius: 6,
+                        pointBackgroundColor: pointColor,
+                        pointBorderColor: '#fff',
+                        pointBorderWidth: 1,
+                        pointHitRadius: 20
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    animation: { duration: 300 },
+                    interaction: {
+                        intersect: false,
+                        mode: 'nearest'
+                    },
+                    plugins: {
+                        legend: { display: false },
+                        tooltip: {
+                            backgroundColor: 'rgba(26, 26, 46, 0.95)',
+                            titleColor: '#fff',
+                            bodyColor: borderColor,
+                            borderColor: borderColor,
+                            borderWidth: 1,
+                            titleFont: { size: 13 },
+                            bodyFont: { size: 14, weight: 'bold' },
+                            padding: 10,
+                            displayColors: false,
+                            callbacks: {
+                                label: function(ctx) {
+                                    return ctx.parsed.y.toFixed(2) + ' 元/克';
+                                }
+                            }
+                        }
+                    },
+                    scales: {
+                        x: {
+                            grid: { color: 'rgba(0,0,0,0.04)', drawBorder: false },
+                            ticks: {
+                                maxTicksLimit: 8,
+                                color: '#7f8c8d',
+                                font: { size: 11 }
+                            }
+                        },
+                        y: {
+                            grid: { color: 'rgba(0,0,0,0.04)', drawBorder: false },
+                            ticks: {
+                                color: '#7f8c8d',
+                                font: { size: 11 },
+                                callback: function(v) { return v.toFixed(0); }
+                            }
+                        }
+                    }
+                }
+            };
+        }
+
+        function initCharts() {
+            if (hourlyChart) { hourlyChart.destroy(); }
+            if (dailyChart) { dailyChart.destroy(); }
+
+            const hCtx = document.getElementById('hourlyChart').getContext('2d');
+            hourlyChart = new Chart(hCtx, createChartConfig(
+                '当日小时金价', '#ffd700', 'rgba(255,215,0,0.08)', '#ffd700'
+            ));
+
+            const dCtx = document.getElementById('dailyChart').getContext('2d');
+            dailyChart = new Chart(dCtx, createChartConfig(
+                '近7日收盘价', '#3498db', 'rgba(52,152,219,0.08)', '#3498db'
+            ));
+        }
+
+        function updateCharts() {
+            updateHourlyChart();
+            updateDailyChart();
+        }
+
+        // ==================== 图表刷新功能 ====================
+        let refreshTimer = null;
+
+        function showToast(message, type) {
+            const toast = document.getElementById('chartRefreshToast');
+            if (!toast) return;
+            if (refreshTimer) clearTimeout(refreshTimer);
+            toast.textContent = message;
+            toast.className = 'chart-refresh-toast ' + type + ' show';
+            refreshTimer = setTimeout(() => {
+                toast.classList.remove('show');
+            }, 2000);
+        }
+
+        async function refreshHourlyChart() {
+            const btn = document.getElementById('hourlyRefreshBtn');
+            const statusEl = document.getElementById('goldPriceStatus');
+
+            // DOM 元素未就绪则跳过
+            if (!btn || !statusEl) return;
+
+            // 防止重复点击
+            if (btn.classList.contains('loading')) return;
+
+            // 进入加载状态
+            btn.classList.add('loading');
+            btn.classList.remove('success', 'error');
+
+            try {
+                const response = await fetch(GOLD_API_URL);
+                if (!response.ok) throw new Error('API请求失败(' + response.status + ')');
+                const data = await response.json();
+                if (Array.isArray(data.intraday) && data.intraday.length > serverIntraday.length) serverIntraday = data.intraday;
+                const goldMetal = data.metals && data.metals.length > 0 ? data.metals[0] : null;
+                if (!goldMetal) throw new Error('未获取到金价数据');
+
+                currentGoldData = {
+                    sellPrice: parseFloat(goldMetal.sell_price),
+                    todayPrice: parseFloat(goldMetal.today_price),
+                    highPrice: parseFloat(goldMetal.high_price),
+                    lowPrice: parseFloat(goldMetal.low_price),
+                    updated: goldMetal.updated,
+                    timestamp: Date.now()
+                };
+
+                updateGoldPriceUI();
+                recordPriceSnapshot();
+                updateCharts();
+
+                statusEl.textContent = '实时';
+                statusEl.className = 'gold-price-status';
+
+                // 成功状态
+                btn.classList.remove('loading');
+                btn.classList.add('success');
+                showToast('✓ 金价数据已更新', 'success');
+
+                // 1.5秒后恢复默认状态
+                setTimeout(() => {
+                    btn?.classList.remove('success');
+                }, 1500);
+
+            } catch (e) {
+                console.error('刷新金价失败:', e);
+                btn.classList.remove('loading');
+                btn.classList.add('error');
+
+                // 错误提示
+                const errMsg = e.message.includes('Failed to fetch') || e.message.includes('NetworkError')
+                    ? '网络连接失败，请检查网络'
+                    : '刷新失败: ' + e.message;
+                showToast(errMsg, 'error');
+
+                // 保留缓存数据显示
+                if (currentGoldData) {
+                    updateGoldPriceUI();
+                } else {
+                    statusEl.textContent = '获取失败';
+                    statusEl.className = 'gold-price-status error';
+                }
+
+                // 2秒后恢复默认状态
+                setTimeout(() => {
+                    btn?.classList.remove('error');
+                }, 2000);
+            }
+        }
+
+        function updateHourlyChart() {
+            if (!hourlyChart) return;
+            const history = getGoldPriceHistory();
+            const today = formatDate(new Date());
+            const localToday = history.filter(h => formatDate(new Date(h.timestamp)) === today);
+            const merged = [...localToday];
+            const serverToday = serverIntraday.filter(h => formatDate(new Date(h.timestamp)) === today);
+            serverToday.forEach(point => {
+                const dup = merged.some(m => Math.abs(m.timestamp - point.timestamp) < 60 * 1000);
+                if (!dup) merged.push(point);
+            });
+            merged.sort((a, b) => a.timestamp - b.timestamp);
+            const chartData = merged;
+
+            if (currentGoldData && (chartData.length === 0 ||
+                    currentGoldData.timestamp - chartData[chartData.length - 1].timestamp > 5 * 60 * 1000)) {
+                chartData.push({
+                    timestamp: currentGoldData.timestamp,
+                    price: currentGoldData.todayPrice
+                });
+            }
+
+            hourlyChart.data.labels = chartData.map(d => formatTimeShort(new Date(d.timestamp)));
+            hourlyChart.data.datasets[0].data = chartData.map(d => d.price);
+            hourlyChart.update('none');
+        }
+
+        function updateDailyChart() {
+            if (!dailyChart) return;
+            const daily = getGoldPriceDaily();
+            const sevenDays = daily.slice(-7);
+
+            dailyChart.data.labels = sevenDays.map(d => {
+                const parts = d.date.split('-');
+                return parts[1] + '/' + parts[2];
+            });
+            dailyChart.data.datasets[0].data = sevenDays.map(d => d.close);
+            dailyChart.update('none');
+        }
+
+        // ==================== 买入功能 ====================
+        const buyPriceInput = document.getElementById('buyPriceInput');
+        const buyWeightInput = document.getElementById('buyWeightInput');
+        const buyFeeRateInput = document.getElementById('buyFeeRateInput');
+
+        function updateBuyPreview() {
+            const price = parseFloat(buyPriceInput.value) || 0;
+            const weight = parseFloat(buyWeightInput.value) || 0;
+            const feeRate = parseFloat(buyFeeRateInput.value) || 0;
+            const amount = price * weight;
+            const fee = amount * feeRate / 100;
+            document.getElementById('previewBuyAmount').textContent = amount.toFixed(2) + ' 元';
+            document.getElementById('previewBuyFee').textContent = fee.toFixed(2) + ' 元';
+        }
+
+        buyPriceInput.addEventListener('input', updateBuyPreview);
+        buyWeightInput.addEventListener('input', updateBuyPreview);
+        buyFeeRateInput.addEventListener('input', updateBuyPreview);
+
+        function handleAddBuy() {
+            const price = parseFloat(buyPriceInput.value) || 0;
+            const weight = parseFloat(buyWeightInput.value) || 0;
+            const feeRate = parseFloat(buyFeeRateInput.value) || 0;
+            if (price <= 0 || weight <= 0) {
+                alert('请输入有效的买入价格和克数！');
+                return;
+            }
+            addBuyRecord(price, weight, feeRate);
+            buyPriceInput.value = '';
+            buyWeightInput.value = '';
+            updateBuyPreview();
+            refreshPortfolio();
+            alert('买入成功！');
+        }
+
+        function refreshPortfolio() {
+            const data = getData();
+            const stats = getPortfolioStats();
+            const sellFeeRate = parseFloat(document.getElementById('sellFeeRateInput').value) || 0.4;
+            document.getElementById('statTotalWeight').textContent = stats.totalWeight.toFixed(4) + ' 克';
+            document.getElementById('statTotalInvestment').textContent = stats.totalInvestment.toFixed(2) + ' 元';
+            document.getElementById('statAvgCost').textContent = stats.avgCost.toFixed(2) + ' 元/克';
+            document.getElementById('breakEvenPrice').textContent = calculateBreakEvenPrice(stats.avgCost, sellFeeRate).toFixed(2);
+
+            const tbody = document.getElementById('buyRecordsBody');
+            const tfoot = document.getElementById('buyRecordsFoot');
+            const emptyTip = document.getElementById('emptyTip');
+
+            if (data.buyRecords.length === 0) {
+                tbody.innerHTML = '';
+                tfoot.innerHTML = '';
+                emptyTip.style.display = 'block';
+                document.querySelector('#buyRecordsTable').parentElement.style.display = 'none';
+            } else {
+                emptyTip.style.display = 'none';
+                document.querySelector('#buyRecordsTable').parentElement.style.display = 'block';
+                let totalWeight = 0, totalAmount = 0, totalFee = 0, totalRemaining = 0;
+                const fragment = document.createDocumentFragment();
+                const tempTbody = document.createElement('tbody');
+
+                data.buyRecords.forEach(record => {
+                    totalWeight += record.weight;
+                    totalAmount += record.amount;
+                    totalFee += record.fee;
+                    totalRemaining += record.remainingWeight;
+                    const tr = document.createElement('tr');
+                    tr.innerHTML = `
+                        <td>${formatTime(record.timestamp)}</td>
+                        <td>${record.price.toFixed(2)}</td>
+                        <td>${record.weight.toFixed(4)}</td>
+                        <td>${record.amount.toFixed(2)}</td>
+                        <td>${record.fee.toFixed(2)}</td>
+                        <td>${record.remainingWeight.toFixed(4)}</td>
+                        <td><button class="btn-delete" data-id="${record.id}">删除</button></td>
+                    `;
+                    tempTbody.appendChild(tr);
+                });
+
+                tbody.innerHTML = '';
+                while (tempTbody.firstChild) {
+                    tbody.appendChild(tempTbody.firstChild);
+                }
+
+                // 事件委托
+                tbody.querySelectorAll('.btn-delete').forEach(btn => {
+                    btn.addEventListener('click', function() {
+                        handleDeleteBuy(this.dataset.id);
+                    });
+                });
+
+                tfoot.innerHTML = `
+                    <tr>
+                        <td><b>合计</b></td><td>-</td>
+                        <td><b>${totalWeight.toFixed(4)}</b></td>
+                        <td><b>${totalAmount.toFixed(2)}</b></td>
+                        <td><b>${totalFee.toFixed(2)}</b></td>
+                        <td><b>${totalRemaining.toFixed(4)}</b></td>
+                        <td></td>
+                    </tr>`;
+            }
+            filterProfitRecords();
+        }
+
+        function handleDeleteBuy(id) {
+            if (confirm('确定要删除这条买入记录吗？')) {
+                deleteBuyRecord(id);
+                refreshPortfolio();
+            }
+        }
+
+        function handleClearAll() {
+            if (confirm('确定要清空所有买入记录吗？此操作不可恢复！')) {
+                clearAllBuyRecords();
+                refreshPortfolio();
+            }
+        }
+
+        // ==================== 卖出功能 ====================
+        const sellTypeRadios = document.querySelectorAll('input[name="sellType"]');
+        const sellQuantityLabel = document.getElementById('sellQuantityLabel');
+        const sellQuantityInput = document.getElementById('sellQuantityInput');
+        const sellPriceInput = document.getElementById('sellPriceInput');
+        const sellFeeRateInput = document.getElementById('sellFeeRateInput');
+
+        sellTypeRadios.forEach(radio => {
+            radio.addEventListener('change', function() {
+                if (this.value === 'weight') {
+                    sellQuantityLabel.textContent = '卖出克数（克）';
+                    sellQuantityInput.placeholder = '请输入卖出克数';
+                } else {
+                    sellQuantityLabel.textContent = '卖出金额（元）';
+                    sellQuantityInput.placeholder = '请输入卖出金额';
+                }
+                updateSellPreview();
+            });
+        });
+
+        function updateSellPreview() {
+            const stats = getPortfolioStats();
+            const sellType = document.querySelector('input[name="sellType"]:checked').value;
+            const price = parseFloat(sellPriceInput.value) || 0;
+            const quantity = parseFloat(sellQuantityInput.value) || 0;
+            const feeRate = parseFloat(sellFeeRateInput.value) || 0;
+            let sellWeight, sellAmount;
+            if (sellType === 'weight') {
+                sellWeight = quantity;
+                sellAmount = price * sellWeight;
+            } else {
+                sellAmount = quantity;
+                sellWeight = price > 0 ? sellAmount / price : 0;
+            }
+            const sellFee = sellAmount * feeRate / 100;
+            const netProfit = sellAmount - sellFee - sellWeight * stats.avgCost;
+            document.getElementById('previewSellAmount').textContent = sellAmount.toFixed(2) + ' 元';
+            document.getElementById('previewSellFee').textContent = sellFee.toFixed(2) + ' 元';
+            const netProfitEl = document.getElementById('previewNetProfit');
+            netProfitEl.textContent = (netProfit >= 0 ? '+' : '') + netProfit.toFixed(2) + ' 元';
+            netProfitEl.className = 'preview-value ' + (netProfit >= 0 ? 'profit-text' : 'loss-text');
+        }
+
+        sellPriceInput.addEventListener('input', updateSellPreview);
+        sellQuantityInput.addEventListener('input', updateSellPreview);
+        sellFeeRateInput.addEventListener('input', updateSellPreview);
+
+        function handleSell() {
+            const stats = getPortfolioStats();
+            const sellType = document.querySelector('input[name="sellType"]:checked').value;
+            const price = parseFloat(sellPriceInput.value) || 0;
+            const quantity = parseFloat(sellQuantityInput.value) || 0;
+            const feeRate = parseFloat(sellFeeRateInput.value) || 0;
+            if (price <= 0 || quantity <= 0) {
+                alert('请输入有效的卖出价格和数量！');
+                return;
+            }
+            let sellWeight = sellType === 'weight' ? quantity : (price > 0 ? quantity / price : 0);
+            if (sellWeight > stats.totalWeight) {
+                alert(`卖出数量超出持仓！当前持仓：${stats.totalWeight.toFixed(4)} 克`);
+                return;
+            }
+            addSellRecord(price, sellWeight, feeRate);
+            sellPriceInput.value = '';
+            sellQuantityInput.value = '';
+            updateSellPreview();
+            refreshPortfolio();
+            alert('卖出成功！');
+        }
+
+        // ==================== 卖出收益记录模块 ====================
+        let profitCurrentFilter = 'all';
+        let profitCurrentSort = 'time-desc';
+        let profitCurrentPage = 1;
+        const profitPageSize = 5;
+        let profitFilteredRecords = [];
+        let profitSummaryCache = null;
+        let profitRenderTimer = null;
+
+        function calculateSellProfitData() {
+            return (getData().sellRecords || []).map(record => {
+                const costPrice = record.costPrice || 0;
+                const costBasis = record.weight * costPrice;
+                const profit = record.amount - record.fee - costBasis;
+                const rate = costBasis > 0 ? (profit / costBasis) * 100 : 0;
+                return { ...record, costPrice, profit, rate };
+            });
+        }
+
+        function getProfitTimeRange(filterType) {
+            const now = new Date();
+            const today = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+            switch (filterType) {
+                case 'today': return { start: today, end: now };
+                case 'week':
+                    const ws = new Date(today);
+                    ws.setDate(ws.getDate() - ws.getDay());
+                    return { start: ws, end: now };
+                case 'month':
+                    return { start: new Date(now.getFullYear(), now.getMonth(), 1), end: now };
+                case 'custom':
+                    const sd = document.getElementById('startDateInput').value;
+                    const ed = document.getElementById('endDateInput').value;
+                    if (!sd || !ed) return null;
+                    return { start: new Date(sd), end: new Date(ed + 'T23:59:59') };
+                default: return null;
+            }
+        }
+
+        function filterProfitRecords() {
+            if (profitRenderTimer) clearTimeout(profitRenderTimer);
+            showProfitLoading();
+            profitRenderTimer = setTimeout(() => {
+                requestAnimationFrame(() => performFilterAndRender());
+            }, 80);
+        }
+
+        function showProfitLoading() {
+            document.getElementById('profitRecordsBody').innerHTML =
+                '<tr><td colspan="8" style="color:#999;padding:20px;">加载中...</td></tr>';
+            document.getElementById('profitRecordsFoot').innerHTML = '';
+        }
+
+        function performFilterAndRender() {
+            const allRecords = calculateSellProfitData();
+            const range = getProfitTimeRange(profitCurrentFilter);
+            profitFilteredRecords = range
+                ? allRecords.filter(r => { const d = new Date(r.timestamp); return d >= range.start && d <= range.end; })
+                : [...allRecords];
+            sortProfitRecords();
+            profitCurrentPage = 1;
+            profitSummaryCache = calculateProfitSummary();
+            renderProfitRecords();
+            renderProfitSummary();
+        }
+
+        function calculateProfitSummary() {
+            if (profitFilteredRecords.length === 0) return { count: 0, totalAmount: 0, totalProfit: 0, avgRate: 0 };
+            let totalAmount = 0, totalProfit = 0, totalRate = 0;
+            for (let i = 0; i < profitFilteredRecords.length; i++) {
+                totalAmount += profitFilteredRecords[i].amount;
+                totalProfit += profitFilteredRecords[i].profit;
+                totalRate += profitFilteredRecords[i].rate;
+            }
+            return { count: profitFilteredRecords.length, totalAmount, totalProfit, avgRate: totalRate / profitFilteredRecords.length };
+        }
+
+        function sortProfitRecords() {
+            const [field, direction] = profitCurrentSort.split('-');
+            profitFilteredRecords.sort((a, b) => {
+                let va, vb;
+                switch (field) {
+                    case 'time': va = new Date(a.timestamp).getTime(); vb = new Date(b.timestamp).getTime(); break;
+                    case 'profit': va = a.profit; vb = b.profit; break;
+                    case 'rate': va = a.rate; vb = b.rate; break;
+                    default: return 0;
+                }
+                return direction === 'desc' ? vb - va : va - vb;
+            });
+        }
+
+        function renderProfitRecords() {
+            const tbody = document.getElementById('profitRecordsBody');
+            const tfoot = document.getElementById('profitRecordsFoot');
+            const emptyTip = document.getElementById('profitEmptyTip');
+            const tableContainer = document.getElementById('profitTableContainer');
+
+            if (profitFilteredRecords.length === 0) {
+                tbody.innerHTML = ''; tfoot.innerHTML = '';
+                emptyTip.style.display = 'block'; tableContainer.style.display = 'none';
+                document.getElementById('profitPagination').innerHTML = '';
+                return;
+            }
+
+            emptyTip.style.display = 'none'; tableContainer.style.display = 'block';
+            const totalPages = Math.ceil(profitFilteredRecords.length / profitPageSize);
+            const si = (profitCurrentPage - 1) * profitPageSize;
+            const ei = Math.min(si + profitPageSize, profitFilteredRecords.length);
+
+            let tw = 0, ta = 0, tf = 0, tp = 0;
+            const fragment = document.createDocumentFragment();
+
+            for (let i = si; i < ei; i++) {
+                const r = profitFilteredRecords[i];
+                tw += r.weight; ta += r.amount; tf += r.fee; tp += r.profit;
+                const tr = document.createElement('tr');
+                const pc = r.profit >= 0 ? 'profit-amount' : 'loss-amount';
+                const rc = r.rate >= 0 ? 'profit-rate' : 'loss-rate';
+                const ps = r.profit >= 0 ? '+' : '';
+                const rs = r.rate >= 0 ? '+' : '';
+                tr.innerHTML = `<td>${formatTime(r.timestamp)}</td><td>${r.price.toFixed(2)}</td><td>${r.costPrice.toFixed(2)}</td><td>${r.weight.toFixed(4)}</td><td>${r.amount.toFixed(2)}</td><td>${r.fee.toFixed(2)}</td><td class="${pc}">${ps}${r.profit.toFixed(2)}</td><td><span class="${rc}">${rs}${r.rate.toFixed(2)}%</span></td>`;
+                fragment.appendChild(tr);
+            }
+            tbody.innerHTML = '';
+            tbody.appendChild(fragment);
+
+            const avgRate = ta > 0 ? (tp / (ta - tf)) * 100 : 0;
+            const arc = avgRate >= 0 ? 'profit-rate' : 'loss-rate';
+            const ars = avgRate >= 0 ? '+' : '';
+            const tpc = tp >= 0 ? 'profit-amount' : 'loss-amount';
+            const tps = tp >= 0 ? '+' : '';
+
+            tfoot.innerHTML = `<tr><td><b>合计</b></td><td>-</td><td>-</td><td><b>${tw.toFixed(4)}</b></td><td><b>${ta.toFixed(2)}</b></td><td><b>${tf.toFixed(2)}</b></td><td class="${tpc}"><b>${tps}${tp.toFixed(2)}</b></td><td><span class="${arc}"><b>${ars}${avgRate.toFixed(2)}%</b></span></td></tr>`;
+            renderProfitPagination(totalPages);
+        }
+
+        function renderProfitPagination(totalPages) {
+            const pagination = document.getElementById('profitPagination');
+            if (totalPages <= 1) {
+                pagination.innerHTML = `<span class="page-info">共 ${profitFilteredRecords.length} 条记录</span>`;
+                return;
+            }
+            const f = document.createDocumentFragment();
+            const c = document.createElement('div');
+            c.style.cssText = 'display:flex;justify-content:center;gap:6px;align-items:center;flex-wrap:wrap;';
+
+            const prev = document.createElement('button');
+            prev.className = 'page-btn' + (profitCurrentPage === 1 ? ' disabled' : '');
+            prev.textContent = '上一页';
+            prev.disabled = profitCurrentPage === 1;
+            if (profitCurrentPage > 1) prev.onclick = () => goToProfitPage(profitCurrentPage - 1);
+            c.appendChild(prev);
+
+            const mv = 5;
+            let sp = Math.max(1, profitCurrentPage - Math.floor(mv / 2));
+            let ep = Math.min(totalPages, sp + mv - 1);
+            if (ep - sp < mv - 1) sp = Math.max(1, ep - mv + 1);
+
+            if (sp > 1) {
+                const fb = document.createElement('button');
+                fb.className = 'page-btn'; fb.textContent = '1';
+                fb.onclick = () => goToProfitPage(1);
+                c.appendChild(fb);
+                if (sp > 2) { const e = document.createElement('span'); e.textContent = '...'; e.style.color = '#7f8c8d'; c.appendChild(e); }
+            }
+            for (let i = sp; i <= ep; i++) {
+                const pb = document.createElement('button');
+                pb.className = 'page-btn' + (i === profitCurrentPage ? ' active' : '');
+                pb.textContent = i;
+                if (i !== profitCurrentPage) pb.onclick = () => goToProfitPage(i);
+                c.appendChild(pb);
+            }
+            if (ep < totalPages) {
+                if (ep < totalPages - 1) { const e = document.createElement('span'); e.textContent = '...'; e.style.color = '#7f8c8d'; c.appendChild(e); }
+                const lb = document.createElement('button');
+                lb.className = 'page-btn'; lb.textContent = totalPages;
+                lb.onclick = () => goToProfitPage(totalPages);
+                c.appendChild(lb);
+            }
+            const pi = document.createElement('span');
+            pi.className = 'page-info'; pi.textContent = `共 ${profitFilteredRecords.length} 条`;
+            c.appendChild(pi);
+
+            const next = document.createElement('button');
+            next.className = 'page-btn' + (profitCurrentPage === totalPages ? ' disabled' : '');
+            next.textContent = '下一页';
+            next.disabled = profitCurrentPage === totalPages;
+            if (profitCurrentPage < totalPages) next.onclick = () => goToProfitPage(profitCurrentPage + 1);
+            c.appendChild(next);
+
+            f.appendChild(c);
+            pagination.innerHTML = '';
+            pagination.appendChild(f);
+        }
+
+        function goToProfitPage(page) {
+            profitCurrentPage = page;
+            requestAnimationFrame(() => renderProfitRecords());
+        }
+
+        function renderProfitSummary() {
+            const s = profitSummaryCache || calculateProfitSummary();
+            document.getElementById('profitSummaryCount').textContent = s.count + ' 次';
+            document.getElementById('profitSummaryAmount').textContent = s.totalAmount.toFixed(2) + ' 元';
+            const pe = document.getElementById('profitSummaryProfit');
+            pe.textContent = (s.totalProfit >= 0 ? '+' : '') + s.totalProfit.toFixed(2) + ' 元';
+            pe.className = 'profit-summary-value ' + (s.totalProfit >= 0 ? 'profit' : 'loss');
+            const re = document.getElementById('profitSummaryRate');
+            re.textContent = (s.avgRate >= 0 ? '+' : '') + s.avgRate.toFixed(2) + '%';
+            re.className = 'profit-summary-value ' + (s.avgRate >= 0 ? 'profit' : 'loss');
+        }
+
+        // 筛选与排序事件
+        document.querySelectorAll('.filter-btn[data-filter]').forEach(btn => {
+            btn.addEventListener('click', function() {
+                document.querySelectorAll('.filter-btn[data-filter]').forEach(b => b.classList.remove('active'));
+                document.getElementById('customFilterBtn').classList.remove('active');
+                this.classList.add('active');
+                profitCurrentFilter = this.dataset.filter;
+                filterProfitRecords();
+            });
+        });
+
+        document.getElementById('customFilterBtn').addEventListener('click', function() {
+            const sd = document.getElementById('startDateInput').value;
+            const ed = document.getElementById('endDateInput').value;
+            if (!sd || !ed) { alert('请选择开始日期和结束日期！'); return; }
+            if (new Date(sd) > new Date(ed)) { alert('开始日期不能大于结束日期！'); return; }
+            document.querySelectorAll('.filter-btn[data-filter]').forEach(b => b.classList.remove('active'));
+            this.classList.add('active');
+            profitCurrentFilter = 'custom';
+            filterProfitRecords();
+        });
+
+        document.getElementById('sortSelect').addEventListener('change', function() {
+            profitCurrentSort = this.value;
+            filterProfitRecords();
+        });
+
+        // ==================== 初始化 ====================
+        document.addEventListener('DOMContentLoaded', function() {
+            refreshPortfolio();
+            filterProfitRecords();
+            initCharts();
+
+            // 检查每周更新
+            checkWeeklyUpdate();
+
+            // 首次获取金价
+            fetchGoldPrice();
+
+            // 每小时刷新一次金价
+            setInterval(fetchGoldPrice, 60 * 60 * 1000);
+        });
+    </script>
+</body>
+</html>

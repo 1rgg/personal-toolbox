@@ -1,0 +1,54 @@
+[Unit]
+Description=CS2 Events Hub (静态站点 + Liquipedia 数据代理)
+Documentation=https://github.com/1rgg/CS2-events
+After=network-online.target
+Wants=network-online.target
+
+[Service]
+Type=simple
+User=cs2events
+Group=cs2events
+WorkingDirectory=/opt/cs2-events
+EnvironmentFile=/opt/cs2-events/deploy/env
+ExecStart=/usr/bin/node /opt/cs2-events/server.js
+
+Restart=always
+RestartSec=5
+StandardOutput=journal
+StandardError=journal
+SyslogIdentifier=cs2-events
+
+# ── 加固 ──────────────────────────────────────────────
+# 只监听回环，公网访问一律走 Nginx
+NoNewPrivileges=true
+PrivateTmp=true
+ProtectSystem=strict
+ProtectHome=true
+# .cache/ 必须可写，否则每次请求都会重新打 Liquipedia
+ReadWritePaths=/opt/cs2-events/.cache
+ProtectKernelTunables=true
+ProtectKernelModules=true
+ProtectControlGroups=true
+RestrictAddressFamilies=AF_INET AF_INET6 AF_UNIX
+RestrictNamespaces=true
+LockPersonality=true
+PrivateDevices=true
+
+# 资源上限：本项目常驻约 50-80 MB。
+# MemoryHigh 触发回收但不杀进程，MemoryMax 才是硬上限；
+# 设 512M 是因为这台机器上还有其它重负载业务，需要给它们留余量，
+# 同时保证本站 OOM 时先牺牲自己而不是拖垮整机。
+MemoryHigh=256M
+MemoryMax=512M
+# OOM 时优先回收本站，避免和宿主机上其它业务互相拖累
+OOMScoreAdjust=500
+TasksMax=64
+
+# CPU 调度权重。同机还有青龙面板等重负载任务，
+# 给本站较高权重保证响应，但用 CPUQuota 封顶防止它抢占过多。
+Nice=-5
+CPUWeight=200
+CPUQuota=80%
+
+[Install]
+WantedBy=multi-user.target

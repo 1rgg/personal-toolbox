@@ -1,0 +1,102 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="description" content="快递物流查询：输入单号即可查看承运公司、当前状态与完整轨迹。">
+<title>快递物流查询 · 个人工具箱</title>
+<link rel="stylesheet" href="/assets/site.css">
+<link rel="stylesheet" href="/track/css/style.css">
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'><rect width='32' height='32' rx='9' fill='%231a5fa5'/><path d='M9 12l7-3 7 3v8l-7 3-7-3z' stroke='white' stroke-width='2' fill='none' stroke-linejoin='round'/><path d='M9 12l7 3 7-3M16 15v8' stroke='white' stroke-width='2' fill='none' stroke-linejoin='round'/></svg>">
+</head>
+<body>
+<script src="/assets/site.js" data-app="track"></script>
+
+<section class="page-head">
+  <div class="shell">
+    <nav class="crumbs" aria-label="面包屑"><a href="/">首页</a><span>/</span>物流查询</nav>
+    <p class="kicker"><span class="tick"></span>Logistics</p>
+    <h1>快递物流查询</h1>
+    <p class="lede">输入快递单号，自动识别承运公司，查看当前状态与逐条物流轨迹。历史记录只保存在本机浏览器。</p>
+    <div class="meta-row">
+      <span class="meta-pill"><i></i>全快递公司自动识别</span>
+      <span class="meta-pill"><i></i>轨迹逐条时间线</span>
+      <span class="meta-pill"><i></i>本地历史 · 不上传</span>
+    </div>
+  </div>
+</section>
+
+<main class="app-main">
+  <div class="container">
+
+    <section class="query-section">
+      <div class="input-group">
+        <div class="input-wrapper">
+          <svg class="input-icon" viewBox="0 0 24 24" aria-hidden="true"><circle cx="11" cy="11" r="6.5"/><path d="M16 16l4.2 4.2"/></svg>
+          <input type="text" id="trackingNumber" placeholder="请输入快递单号，如 SF1234567890" autocomplete="off" aria-label="快递单号">
+          <button id="clearBtn" class="clear-btn" title="清空" aria-label="清空">
+            <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M7 7l10 10M17 7L7 17"/></svg>
+          </button>
+        </div>
+        <button id="queryBtn" class="query-btn">查询</button>
+      </div>
+
+      <div class="history-section" id="historySection">
+        <div class="history-header">
+          <span>查询历史</span>
+          <button id="clearHistoryBtn" class="clear-history-btn" type="button">清空历史</button>
+        </div>
+        <div class="history-list" id="historyList"></div>
+      </div>
+    </section>
+
+    <div class="loading" id="loading">
+      <div class="loading-spinner"></div>
+      <p>正在查询快递信息…</p>
+    </div>
+
+    <div class="error-message" id="errorMessage">
+      <svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="M12 7.5v5.5M12 16.2v.6"/></svg>
+      <span id="errorText"></span>
+    </div>
+
+    <section class="result-section" id="resultSection">
+      <div class="package-info card" id="packageInfo">
+        <div class="info-header">
+          <h2>包裹信息</h2>
+          <span class="status-badge" id="statusBadge"></span>
+        </div>
+        <div class="info-grid">
+          <div class="info-item">
+            <label>快递公司</label>
+            <span id="companyName">-</span>
+          </div>
+          <div class="info-item">
+            <label>快递单号</label>
+            <span id="trackingNum" class="mono">-</span>
+          </div>
+          <div class="info-item">
+            <label>当前状态</label>
+            <span id="currentStatus">-</span>
+          </div>
+          <div class="info-item">
+            <label>更新时间</label>
+            <span id="updateTime">-</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="tracking-timeline card" id="trackingTimeline">
+        <h2>物流轨迹</h2>
+        <div class="timeline" id="timeline"></div>
+      </div>
+    </section>
+
+    <p class="foot-note">快递数据由第三方接口提供，仅供参考；高峰时段可能延迟。</p>
+
+  </div>
+</main>
+
+<script src="/track/js/app.js"></script>
+</body>
+</html>
